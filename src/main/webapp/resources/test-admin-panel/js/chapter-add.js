@@ -1,4 +1,4 @@
-(function() {
+(function () {
   var albumBucketName = "hcvideo212";
   var bucketRegion = "ap-south-1";
   var IdentityPoolId = "ap-south-1:8ab0020b-b609-4377-899b-bd39c4aa120b";
@@ -6,51 +6,49 @@
 
   AWS.config.update({
     credentials: new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: IdentityPoolId
-    })
+      IdentityPoolId: IdentityPoolId,
+    }),
   });
   AWS.config.region = bucketRegion;
 
   var s3 = new AWS.S3({
     apiVersion: "2006-03-01",
     params: {
-      Bucket: albumBucketName
-    }
+      Bucket: albumBucketName,
+    },
   });
-  
-  function readURL(input) {
-	  if (input.files && input.files[0]) {
-	    var reader = new FileReader();
-	    
-	    reader.onload = function(e) {
-	      $('#cover-prev').attr('src', e.target.result);
-	    }
-	    
-	    reader.readAsDataURL(input.files[0]);
-	  }
-  }
-  
 
-	$("#course-cover").change(function() {
-		  readURL(this);
-		  let file = this.files[0];
-		  let fileKey = Date.now() + "_" + file.name.replace(/\s/g, "_");
-		  
-		  uploadCourseStatics(file, fileKey);
-		  obj.cover = "https://do4k6lnx3y4m9.cloudfront.net/" + fileKey;
-		  
-	});
-	$("#course-intro").on("change", function(e) {
-		let file = e.target.files[0];
-		let fileKey = Date.now() + "_" + file.name.replace(/\s/g, "_");
-		
-		uploadCourseStatics(file, fileKey);
-		obj.intro = "https://do4k6lnx3y4m9.cloudfront.net/" + fileKey;
-	});
-	
+  function readURL(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        $("#cover-prev").attr("src", e.target.result);
+      };
+
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  $("#course-cover").change(function () {
+    readURL(this);
+    let file = this.files[0];
+    let fileKey = Date.now() + "_" + file.name.replace(/\s/g, "_");
+
+    uploadCourseStatics(file, fileKey);
+    obj.cover = "https://do4k6lnx3y4m9.cloudfront.net/" + fileKey;
+  });
+  $("#course-intro").on("change", function (e) {
+    let file = e.target.files[0];
+    let fileKey = Date.now() + "_" + file.name.replace(/\s/g, "_");
+
+    uploadCourseStatics(file, fileKey);
+    obj.intro = "https://do4k6lnx3y4m9.cloudfront.net/" + fileKey;
+  });
+
   var totalSize = 0;
   var loaded = [];
-  $(document).on("click", ".save-course", function(e) {
+  $(document).on("click", ".save-course", function (e) {
     obj.course_name = $("#c-title").val();
     obj.course_desc = $("#c-desc").val();
     obj.days = $("#d-days").val();
@@ -58,56 +56,60 @@
     obj.mrp = $("#mrp").val();
     obj.tags = $("#tags").val();
     obj.quickDesc = $("#quick-desc").val();
-    obj.isCourseFree = $("#is-course-free").is(":checked") ? '1' : '0';
-    
+    obj.isCourseFree = $("#is-course-free").is(":checked") ? "1" : "0";
+
     /*obj.cover = $("#course-cover").prop("files")[0]?$("#course-cover").prop("files")[0]:null;
     obj.intro = $("#course-intro").prop("files")[0]?$("#course-intro").prop("files")[0]:null;*/
-    
+
     //obj.img = $("#course-img").files[0];
     obj.chapters = [];
-    $(".ch-inp").each(function(e) {
-      let chId = $(this)[0]
-        .id.split("-")
-        .pop();
+    $(".ch-inp").each(function (e) {
+      let chId = $(this)[0].id.split("-").pop();
       obj.chapters[chId - 1] = {
         title: $(this).val(),
-        lessons: []
+        lessons: [],
       };
     });
 
-    $(".ln-inp").each(function(e) {
+    $(".ln-inp").each(function (e) {
       let blocks = $(this)[0].id.split("-");
       let lnId = blocks.pop();
       let chId = blocks.pop();
       obj.chapters[chId - 1].lessons[lnId - 1] = {
         name: $(this).val(),
-        resources: []
+        resources: [],
       };
     });
     let fd = new FormData();
     let i = 0;
     totalSize = 0;
     loaded = [];
-    $(".r-inp").each(function(e) {
+    $(".r-inp").each(function (e) {
       let blocks = $(this)[0].id.split("-");
       let rId = blocks.pop();
       let lnId = blocks.pop();
       let chId = blocks.pop();
       let fileKey =
         Date.now() + "_" + $(this)[0].files[0].name.replace(/\s/g, "-");
-      
+
       obj.chapters[chId - 1].lessons[lnId - 1].resources[rId - 1] = {
         file: $(this)[0].files[0],
         key: fileKey,
         duration: duration[$(this)[0].files[0].name],
       };
-      
-      // mark lesson as free or not-free. 
+
+      // mark lesson as free or not-free.
       // Please note: only one resource can be added in a lesson heading.
-      obj.chapters[chId - 1].lessons[lnId - 1].isFree =  $('#is-free-input-' + chId + '-' + lnId + '-' + rId ).is(":checked") ? '1' : '0';
-      obj.chapters[chId - 1].lessons[lnId - 1].lessonTags = $('#f-tags-' + chId + '-' + lnId + '-' + rId ).val();
-      console.log($('#f-tags-' + chId + '-' + lnId + '-' + rId ).val());
-      
+      obj.chapters[chId - 1].lessons[lnId - 1].isFree = $(
+        "#is-free-input-" + chId + "-" + lnId + "-" + rId,
+      ).is(":checked")
+        ? "1"
+        : "0";
+      obj.chapters[chId - 1].lessons[lnId - 1].lessonTags = $(
+        "#f-tags-" + chId + "-" + lnId + "-" + rId,
+      ).val();
+      console.log($("#f-tags-" + chId + "-" + lnId + "-" + rId).val());
+
       totalSize += $(this)[0].files[0].size;
       loaded[$(this)[0].files[0].name] = 0;
     });
@@ -122,9 +124,9 @@
     let quickDesc = obj.quickDesc;
 
     // upload files
-    obj.chapters.forEach(function(chapter) {
-      chapter.lessons.forEach(function(lesson) {
-        lesson.resources.forEach(function(res) {
+    obj.chapters.forEach(function (chapter) {
+      chapter.lessons.forEach(function (lesson) {
+        lesson.resources.forEach(function (res) {
           // call the upload function.
           console.log("calling...");
           uploadFile(res);
@@ -146,30 +148,31 @@
     var video = document.createElement("video");
     video.preload = "metadata";
 
-    video.onloadedmetadata = function() {
+    video.onloadedmetadata = function () {
       window.URL.revokeObjectURL(video.src);
       duration[file.name] = Math.floor(video.duration);
     };
 
     video.src = URL.createObjectURL(file);
   }
-  
+
   function uploadCourseStatics(file, key) {
-	  const options = {
-		      partSize: 5 * 1024 * 1024,
-		      queueSize: 1
-	  };
-	  s3.upload(
-		      {
-		        Key: key,
-		        Body: file,
-		        ContentType: file.type,
-		        ACL: "public-read"
-		      },
-		      options
-		    ).on("httpUploadProgress", function(evt) {
-		    	console.log(evt.loaded);
-		       /* var loadedTotal = 0;
+    const options = {
+      partSize: 5 * 1024 * 1024,
+      queueSize: 1,
+    };
+    s3.upload(
+      {
+        Key: key,
+        Body: file,
+        ContentType: file.type,
+        ACL: "public-read",
+      },
+      options,
+    )
+      .on("httpUploadProgress", function (evt) {
+        console.log(evt.loaded);
+        /* var loadedTotal = 0;
 		        loaded[this.body.name] = evt.loaded;
 		        
 		        console.log(loaded);
@@ -178,7 +181,7 @@
 		        let totalSizeInMBs = (totalSize / (1024 * 1024)).toFixed(2);
 		        let totalLoadedInMBs = (loadedTotal / (1024 * 1024)).toFixed(2);*/
 
-		        /*$(".progress-container").show();
+        /*$(".progress-container").show();
 		        $("#bar-progress").attr("style", "width: " + xx + "%");
 		        $("#percent-progress").html(xx);
 		        $("#status").html(
@@ -190,21 +193,21 @@
 		            xx +
 		            "%)</span>"
 		        );*/
-		        
-		      }).send(function(err, data) {
-		        if (!err) {
-		          console.log("course statics done");
-		          console.log(obj);
-		        } else {
-		          console.log(err);
-		        }
-		      });
+      })
+      .send(function (err, data) {
+        if (!err) {
+          console.log("course statics done");
+          console.log(obj);
+        } else {
+          console.log(err);
+        }
+      });
   }
   function uploadFile(rs) {
     $(".save-course").attr("disabled", "disabled");
     const options = {
       partSize: 5 * 1024 * 1024,
-      queueSize: 1
+      queueSize: 1,
     };
 
     var dir = encodeURIComponent("resources") + "/";
@@ -215,11 +218,11 @@
         Key: rs.key,
         Body: rs.file,
         ContentType: rs.file.type,
-        ACL: "public-read"
+        ACL: "public-read",
       },
-      options
+      options,
     )
-      .on("httpUploadProgress", function(evt) {
+      .on("httpUploadProgress", function (evt) {
         var loadedTotal = 0;
         loaded[this.body.name] = evt.loaded;
         for (var j in loaded) {
@@ -242,7 +245,7 @@
             totalSizeInMBs +
             "</span> <span id='per'></span>(" +
             xx +
-            "%)</span>"
+            "%)</span>",
         );
         if (loadedTotal === totalSize) {
           // remove progress bar and
@@ -261,11 +264,11 @@
           let cover = obj.cover;
           let intro = obj.intro;
           let isCourseFree = obj.isCourseFree;
-          
-          obj.chapters.forEach(function(chapter) {
+
+          obj.chapters.forEach(function (chapter) {
             let chName = chapter.title;
             console.log("in chapter");
-            chapter.lessons.forEach(function(lesson) {
+            chapter.lessons.forEach(function (lesson) {
               console.log("in lesson");
 
               let fd = new FormData();
@@ -275,16 +278,16 @@
               fd.append("totalDays", days);
               fd.append("chapter", chName);
               fd.append("lesson", lesson.name);
-              
-              // add isFree to data list to send on server 
+
+              // add isFree to data list to send on server
               fd.append("isFree", lesson.isFree);
-              
+
               // add video tags for each resource
               fd.append("lessonTags", lesson.lessonTags);
-              
+
               // add param to mark course free or not
               fd.append("isCourseFree", isCourseFree);
-              
+
               fd.append("tags", tags);
               fd.append("mrp", mrp);
               fd.append("subDesc", quickDesc);
@@ -295,7 +298,7 @@
 
               let i = 0;
               let j = 0;
-              lesson.resources.forEach(function(resource) {
+              lesson.resources.forEach(function (resource) {
                 fd.append("files[" + i++ + "]", resource.key);
                 fd.append("duration[" + j++ + "]", resource.duration);
               });
@@ -307,10 +310,10 @@
                 contentType: false,
                 processData: false,
                 async: false,
-                beforeSend: function() {
+                beforeSend: function () {
                   console.log("seding data...");
                 },
-                success: function(data) {
+                success: function (data) {
                   if (data === true) {
                     $("#status").html("Course Saved!");
                     obj = {};
@@ -318,16 +321,16 @@
 
                   $(".save-course").removeAttr("disabled");
                 },
-                error: function(a, c, b) {
+                error: function (a, c, b) {
                   alert("error");
-                }
+                },
               });
             });
           });
         }
       })
 
-      .send(function(err, data) {
+      .send(function (err, data) {
         if (!err) {
           console.log("done");
         } else {
@@ -440,23 +443,23 @@
       '" type="button">Upload</button>\
      </span>\
 	</div><span><input type="checkbox" id="is-free-input-' +
-    chapter +
-    "-" +
-    lesson +
-    "-" +
-    res +
-    '"/> Is Free?</span><br><label></label>Resource Tags' + 
-    '<div class="input-group col-xs-9">\
+      chapter +
+      "-" +
+      lesson +
+      "-" +
+      res +
+      '"/> Is Free?</span><br><label></label>Resource Tags' +
+      '<div class="input-group col-xs-9">\
     <input type="text" class="form-control file-upload-info f-tags" style="height: 24px;" id="f-tags-' +
-	 chapter +
-	 "-" +
-	 lesson +
-	 "-" +
-	 res +
-	 '" placeholder="comma seperated tags">\
+      chapter +
+      "-" +
+      lesson +
+      "-" +
+      res +
+      '" placeholder="comma seperated tags">\
 	</span>\
-	</div>'
-    + '</div></div>'
+	</div>' +
+      "</div></div>"
     );
   }
 
@@ -471,7 +474,7 @@
   let chBtn = $("#ch-add");
   lnBtn.attr("disabled", "disabled");
 
-  chBtn.on("click", function() {
+  chBtn.on("click", function () {
     chapterNum++;
     pChapter = chapterNum;
     pLesson = 0;
@@ -487,7 +490,7 @@
     }
   });
 
-  lnBtn.on("click", function() {
+  lnBtn.on("click", function () {
     lessonNum++;
     pLesson++;
     pRes = 0;
@@ -498,7 +501,7 @@
     }
   });
 
-  $(document).on("click", ".ln-del-btn", function(e) {  
+  $(document).on("click", ".ln-del-btn", function (e) {
     let blocks = e.target.id.split("-");
     var lnId = blocks.pop();
     var chId = blocks.pop();
@@ -516,42 +519,42 @@
       buttons: [
         [
           "<button><b>YES</b></button>",
-          function(instance, toast) {
+          function (instance, toast) {
             $("#lesson-" + chId + "-" + lnId).remove();
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
           },
-          true
+          true,
         ],
         [
           "<button>NO</button>",
-          function(instance, toast) {
+          function (instance, toast) {
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
-          }
-        ]
+          },
+        ],
       ],
-      onClosing: function(instance, toast, closedBy) {
+      onClosing: function (instance, toast, closedBy) {
         console.info("Closing | closedBy: " + closedBy);
       },
-      onClosed: function(instance, toast, closedBy) {
+      onClosed: function (instance, toast, closedBy) {
         console.info("Closed | closedBy: " + closedBy);
-      }
+      },
     });
     //alert("#lesson-"+chId+"-"+lnId);
   });
 
-  $(document).on("click", ".ch-del-btn", function(e) {
+  $(document).on("click", ".ch-del-btn", function (e) {
     let blocks = e.target.id.split("-");
     var chId = blocks.pop();
     //alert(lnId + " - " + chId);
@@ -569,42 +572,42 @@
       buttons: [
         [
           "<button><b>YES</b></button>",
-          function(instance, toast) {
+          function (instance, toast) {
             $("#chapter-" + chId).remove();
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
           },
-          true
+          true,
         ],
         [
           "<button>NO</button>",
-          function(instance, toast) {
+          function (instance, toast) {
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
-          }
-        ]
+          },
+        ],
       ],
-      onClosing: function(instance, toast, closedBy) {
+      onClosing: function (instance, toast, closedBy) {
         console.info("Closing | closedBy: " + closedBy);
       },
-      onClosed: function(instance, toast, closedBy) {
+      onClosed: function (instance, toast, closedBy) {
         console.info("Closed | closedBy: " + closedBy);
-      }
+      },
     });
     //alert("#lesson-"+chId+"-"+lnId);
   });
 
-  $(document).on("click", ".add-resource", function(e) {
+  $(document).on("click", ".add-resource", function (e) {
     pRes++;
     let blocks = e.target.id.split("-");
     let lsId = blocks.pop();
@@ -626,7 +629,7 @@
     $("#lesson-" + chId + "-" + lsId).append(getResourceHTML(chId, lsId, pRes));
   });
 
-  $(document).on("click", ".r-del-btn", function(e) {
+  $(document).on("click", ".r-del-btn", function (e) {
     let blocks = e.target.id.split("-");
     let rId = blocks.pop();
     let lnId = blocks.pop();
@@ -645,40 +648,40 @@
       buttons: [
         [
           "<button><b>YES</b></button>",
-          function(instance, toast) {
+          function (instance, toast) {
             $("#r-" + chId + "-" + lnId + "-" + rId).remove();
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
           },
-          true
+          true,
         ],
         [
           "<button>NO</button>",
-          function(instance, toast) {
+          function (instance, toast) {
             instance.hide(
               {
-                transitionOut: "fadeOut"
+                transitionOut: "fadeOut",
               },
               toast,
-              "button"
+              "button",
             );
-          }
-        ]
+          },
+        ],
       ],
-      onClosing: function(instance, toast, closedBy) {
+      onClosing: function (instance, toast, closedBy) {
         console.info("Closing | closedBy: " + closedBy);
       },
-      onClosed: function(instance, toast, closedBy) {
+      onClosed: function (instance, toast, closedBy) {
         console.info("Closed | closedBy: " + closedBy);
-      }
+      },
     });
   });
-  $(document).on("click", ".file-upload-browse", function(e) {
+  $(document).on("click", ".file-upload-browse", function (e) {
     let blocks = e.target.id.split("-");
     let rId = blocks.pop();
     let lnId = blocks.pop();
@@ -688,16 +691,16 @@
     $(document).on(
       "change",
       "#f-upload-" + chId + "-" + lnId + "-" + rId,
-      function(e) {
+      function (e) {
         let name = $("#f-upload-" + chId + "-" + lnId + "-" + rId)
           .val()
           .split("\\")
           .pop();
         $("#f-name-" + chId + "-" + lnId + "-" + rId).val(name);
         saveFileDuration(
-          $("#f-upload-" + chId + "-" + lnId + "-" + rId)[0].files[0]
+          $("#f-upload-" + chId + "-" + lnId + "-" + rId)[0].files[0],
         );
-      }
+      },
     );
   });
 })();

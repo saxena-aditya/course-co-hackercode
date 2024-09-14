@@ -32,7 +32,7 @@
           width: 1rem;
           height: 1rem;
           border-radius: 100%;
-          background: #FF0017;
+          background: #ff0017;
           color: $white;
           font-size: 11px;
           top: -1px;
@@ -94,7 +94,7 @@
             margin-left: 0;
             margin-right: 1.25rem;
           }
-          @media (max-width:991px) {
+          @media (max-width: 991px) {
             margin-right: 0.5rem;
 
             .rtl & {
@@ -139,6 +139,7 @@
       }
     }
 
-    .nav-link {}
+    .nav-link {
+    }
   }
 }

@@ -82,8 +82,8 @@
   }
 
   &.btn-outline-light {
-    border-color: darken(theme-color(light),15%);
-    color: darken(theme-color(light),15%);
+    border-color: darken(theme-color(light), 15%);
+    color: darken(theme-color(light), 15%);
   }
 
   &.btn-outline-secondary {
@@ -125,42 +125,42 @@
     }
 
     &.btn-primary {
-      border-color: darken(theme-color(primary),3%);
+      border-color: darken(theme-color(primary), 3%);
     }
 
     &.btn-secondary {
-      border-color: darken(theme-color(secondary),3%);
+      border-color: darken(theme-color(secondary), 3%);
     }
 
     &.btn-info {
-      border-color: darken(theme-color(info),3%);
+      border-color: darken(theme-color(info), 3%);
     }
 
     &.btn-warning {
-      border-color: darken(theme-color(warning),3%);
+      border-color: darken(theme-color(warning), 3%);
     }
 
     &.btn-success {
-      border-color: darken(theme-color(success),3%);
+      border-color: darken(theme-color(success), 3%);
     }
 
     &.btn-danger {
-      border-color: darken(theme-color(danger),3%);
+      border-color: darken(theme-color(danger), 3%);
     }
 
     &.btn-dark {
-      border-color: darken(theme-color(dark),3%);
+      border-color: darken(theme-color(dark), 3%);
     }
 
     &.btn-light {
-      border-color: darken(theme-color(light),3%);
+      border-color: darken(theme-color(light), 3%);
     }
   }
 }
 
 .btn-toolbar {
   .btn-group {
-    +.btn-group {
+    + .btn-group {
       @extend .ml-2;
     }
   }

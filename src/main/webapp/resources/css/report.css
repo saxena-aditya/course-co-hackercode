@@ -1,203 +1,205 @@
 body {
-    color: #2e2b2b;
+  color: #2e2b2b;
 }
 
 .logo img {
-    width: 150px;
-    margin: 0% 0 0 3%;
+  width: 150px;
+  margin: 0% 0 0 3%;
 }
 
 .usr-avatar {
-    width: fit-content;
-    margin: 0 auto auto 10px;
-    text-align: center;
+  width: fit-content;
+  margin: 0 auto auto 10px;
+  text-align: center;
 }
 
 .usr-img {
-    height: 130px;
-    width: 130px;
+  height: 130px;
+  width: 130px;
 }
 
 .usr-img img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .card {
-    border-radius: 0px;
+  border-radius: 0px;
 }
 
 .usr-name {
-    font-size: 1.1em;
+  font-size: 1.1em;
 }
 
 .card-header {
-    font-size: 1.2em;
-    font-weight: normal;
-    background-color: #fff;
+  font-size: 1.2em;
+  font-weight: normal;
+  background-color: #fff;
 }
 
 .usr-label {
-    font-size: .84em;
-    font-weight: 500;
-    color: #000 !important;
-    padding: 0;
-    margin: -5px;
+  font-size: 0.84em;
+  font-weight: 500;
+  color: #000 !important;
+  padding: 0;
+  margin: -5px;
 }
 
-.usr-d,.usr-d-big {
-    margin-bottom: 5%;
-    font-size: 1.02em;
+.usr-d,
+.usr-d-big {
+  margin-bottom: 5%;
+  font-size: 1.02em;
 }
 
 .d-flex > .usr-d:nth-child(odd) {
-    width: 60%;
+  width: 60%;
 }
 
-#student-details, #test-details {
-    height: 270px;
+#student-details,
+#test-details {
+  height: 270px;
 }
 
 section {
-    padding: 2% 0 0 2%;
+  padding: 2% 0 0 2%;
 }
 
 #summary .col-md-3 {
-    padding: 2%;
-    text-align: center;
-    background-color: #efefef;
+  padding: 2%;
+  text-align: center;
+  background-color: #efefef;
 }
 
 .usr-normal {
-    color: #000;
-    font-size: 1.2em;
-    font-weight: lighter;
-    margin-bottom: -5px;
+  color: #000;
+  font-size: 1.2em;
+  font-weight: lighter;
+  margin-bottom: -5px;
 }
 
 .num-big {
-    font-size: 2.4em;
-    color: #000;
-    padding: 0;
-    margin: 0;
+  font-size: 2.4em;
+  color: #000;
+  padding: 0;
+  margin: 0;
 }
 .section-heading {
   font-size: 1.2em;
   margin: 20px 0;
 }
 .question {
-    border: 1px solid #ddd;
+  border: 1px solid #ddd;
 }
 .q-top-shelf > .q-num {
   margin-top: 0;
   padding: 0 0 0 15px;
 }
 .q-num {
-    width: 3%;
-    padding: 0% 3% 0 1%;
-    margin-top: 5px;
+  width: 3%;
+  padding: 0% 3% 0 1%;
+  margin-top: 5px;
 }
 
 .q-content {
-    width: 80%;
-    padding: 0% 3% 0 1%;
+  width: 80%;
+  padding: 0% 3% 0 1%;
 }
 
 .q-details {
-    width: 7%;
-    text-align: center;
+  width: 7%;
+  text-align: center;
 }
 
 .q-result {
-    width: 9%;
-    padding: 0 1%;
-    text-align: center;
+  width: 9%;
+  padding: 0 1%;
+  text-align: center;
 }
 
 .right {
-    color: green;
+  color: green;
 }
 
 .wrong {
-    color: red;
+  color: red;
 }
 
 .sub-head {
-    font-size: 0.97em;
-    color: #000;
+  font-size: 0.97em;
+  color: #000;
 }
 
 .q-top-shelf {
-    background-color: #efefef;
-    padding: 10px 0 10px 0;
-    border-bottom: 1px solid #ddd;
+  background-color: #efefef;
+  padding: 10px 0 10px 0;
+  border-bottom: 1px solid #ddd;
 }
 
 .c-right:after {
-    content: "right answer";
-    position: relative;
-    right: -2%;
-    background-color: #4caf504d;
-    font-size: 0.8em;
-    font-weight: bold;
-    padding: 1px 10px;
-    color: #337335;
-    letter-spacing: 1px;
-    border-radius: 5px;
-    text-transform: uppercase;
+  content: "right answer";
+  position: relative;
+  right: -2%;
+  background-color: #4caf504d;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 1px 10px;
+  color: #337335;
+  letter-spacing: 1px;
+  border-radius: 5px;
+  text-transform: uppercase;
 }
 
 .c-user-right:after {
-    content: "correctly attempted";
-    position: relative;
-    right: -2%;
-    background-color: #4caf504d;
-    font-size: 0.8em;
-    padding: 1px 10px;
-    color: #337335;
-    letter-spacing: 1px;
-    border-radius: 5px;
-    text-transform: uppercase;
-    font-weight: bold;
+  content: "correctly attempted";
+  position: relative;
+  right: -2%;
+  background-color: #4caf504d;
+  font-size: 0.8em;
+  padding: 1px 10px;
+  color: #337335;
+  letter-spacing: 1px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .c-user-wrong:after {
-    content: "incorrectly attempted";
-    position: relative;
-    right: -2%;
-    background-color: #f4433633;
-    font-size: 0.8em;
-    padding: 1px 10px;
-    color: #f33b00;
-    font-weight: bold;
-    letter-spacing: 1px;
-    border-radius: 5px;
-    text-transform: uppercase;
+  content: "incorrectly attempted";
+  position: relative;
+  right: -2%;
+  background-color: #f4433633;
+  font-size: 0.8em;
+  padding: 1px 10px;
+  color: #f33b00;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border-radius: 5px;
+  text-transform: uppercase;
 }
 
 .q-border-bottom {
-    border-bottom: 1px solid #ddd;
-    padding: 10px 5px;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 5px;
 }
 
 .q-text {
-    font-size: 1.1em;
-    padding: 5px 0 0 0;
+  font-size: 1.1em;
+  padding: 5px 0 0 0;
 }
 
 .op-list {
-    padding-top: 10px;
-    list-style-type: upper-alpha;
+  padding-top: 10px;
+  list-style-type: upper-alpha;
 }
 
 .set-wise-graph {
-	width: 50%; 
-	height: auto;
+  width: 50%;
+  height: auto;
 }
 canvas {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
 }
 /* 
   ##Device = Desktops

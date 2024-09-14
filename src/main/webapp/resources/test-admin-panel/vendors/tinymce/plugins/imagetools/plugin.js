@@ -1,108 +1,100 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.imagetools.Plugin","ephox.imagetools.api.BlobConversions","ephox.imagetools.api.ImageTransformations","tinymce.core.Env","tinymce.core.PluginManager","tinymce.core.util.Delay","tinymce.core.util.Promise","tinymce.core.util.Tools","tinymce.core.util.URI","tinymce.plugins.imagetools.core.ImageSize","tinymce.plugins.imagetools.core.Proxy","tinymce.plugins.imagetools.ui.Dialog","ephox.imagetools.util.Conversions","ephox.imagetools.util.ImageResult","ephox.imagetools.transformations.Filters","ephox.imagetools.transformations.ImageTools","global!tinymce.util.Tools.resolve","tinymce.plugins.imagetools.core.Errors","tinymce.plugins.imagetools.core.Utils","tinymce.core.dom.DOMUtils","tinymce.core.ui.Container","tinymce.core.ui.Factory","tinymce.core.ui.Form","tinymce.plugins.imagetools.ui.ImagePanel","tinymce.plugins.imagetools.core.UndoStack","ephox.imagetools.util.Promise","ephox.imagetools.util.Canvas","ephox.imagetools.util.Mime","ephox.imagetools.util.ImageSize","ephox.imagetools.transformations.ColorMatrix","ephox.imagetools.transformations.ImageResizerCanvas","ephox.katamari.api.Arr","ephox.katamari.api.Fun","tinymce.core.geom.Rect","tinymce.core.ui.Control","tinymce.core.ui.DragHelper","tinymce.plugins.imagetools.ui.CropRect","ephox.katamari.api.Option","global!Array","global!Error","global!String","tinymce.core.dom.DomQuery","tinymce.core.util.Observable","tinymce.core.util.VK","global!Object"]
 jsc*/
-/* eslint-disable */
-/* jshint ignore:start */
+  /* eslint-disable */
+  /* jshint ignore:start */
 
-/**
- * Modifed to be a feature fill and wrapped as tinymce module.
- *
- * Promise polyfill under MIT license: https://github.com/taylorhakes/promise-polyfill
- */
-define(
-  'ephox.imagetools.util.Promise',
-  [
-  ],
-  function () {
+  /**
+   * Modifed to be a feature fill and wrapped as tinymce module.
+   *
+   * Promise polyfill under MIT license: https://github.com/taylorhakes/promise-polyfill
+   */
+  define("ephox.imagetools.util.Promise", [], function () {
     if (window.Promise) {
       return window.Promise;
     }
 
     // Use polyfill for setImmediate for performance gains
-    var asap = Promise.immediateFn || (typeof setImmediate === 'function' && setImmediate) ||
-      function (fn) { setTimeout(fn, 1); };
+    var asap =
+      Promise.immediateFn ||
+      (typeof setImmediate === "function" && setImmediate) ||
+      function (fn) {
+        setTimeout(fn, 1);
+      };
 
     // Polyfill for Function.prototype.bind
     function bind(fn, thisArg) {
@@ -111,11 +103,16 @@ define(
       };
     }
 
-    var isArray = Array.isArray || function (value) { return Object.prototype.toString.call(value) === "[object Array]"; };
+    var isArray =
+      Array.isArray ||
+      function (value) {
+        return Object.prototype.toString.call(value) === "[object Array]";
+      };
 
     function Promise(fn) {
-      if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
-      if (typeof fn !== 'function') throw new TypeError('not a function');
+      if (typeof this !== "object")
+        throw new TypeError("Promises must be constructed via new");
+      if (typeof fn !== "function") throw new TypeError("not a function");
       this._state = null;
       this._value = null;
       this._deferreds = [];
@@ -138,8 +135,7 @@ define(
         var ret;
         try {
           ret = cb(me._value);
-        }
-        catch (e) {
+        } catch (e) {
           deferred.reject(e);
           return;
         }
@@ -148,19 +144,30 @@ define(
     }
 
     function resolve(newValue) {
-      try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-        if (newValue === this) throw new TypeError('A promise cannot be resolved with itself.');
-        if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+      try {
+        //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+        if (newValue === this)
+          throw new TypeError("A promise cannot be resolved with itself.");
+        if (
+          newValue &&
+          (typeof newValue === "object" || typeof newValue === "function")
+        ) {
           var then = newValue.then;
-          if (typeof then === 'function') {
-            doResolve(bind(then, newValue), bind(resolve, this), bind(reject, this));
+          if (typeof then === "function") {
+            doResolve(
+              bind(then, newValue),
+              bind(resolve, this),
+              bind(reject, this),
+            );
             return;
           }
         }
         this._state = true;
         this._value = newValue;
         finale.call(this);
-      } catch (e) { reject.call(this, e); }
+      } catch (e) {
+        reject.call(this, e);
+      }
     }
 
     function reject(newValue) {
@@ -177,8 +184,8 @@ define(
     }
 
     function Handler(onFulfilled, onRejected, resolve, reject) {
-      this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-      this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+      this.onFulfilled = typeof onFulfilled === "function" ? onFulfilled : null;
+      this.onRejected = typeof onRejected === "function" ? onRejected : null;
       this.resolve = resolve;
       this.reject = reject;
     }
@@ -192,15 +199,18 @@ define(
     function doResolve(fn, onFulfilled, onRejected) {
       var done = false;
       try {
-        fn(function (value) {
-          if (done) return;
-          done = true;
-          onFulfilled(value);
-        }, function (reason) {
-          if (done) return;
-          done = true;
-          onRejected(reason);
-        });
+        fn(
+          function (value) {
+            if (done) return;
+            done = true;
+            onFulfilled(value);
+          },
+          function (reason) {
+            if (done) return;
+            done = true;
+            onRejected(reason);
+          },
+        );
       } catch (ex) {
         if (done) return;
         done = true;
@@ -208,7 +218,7 @@ define(
       }
     }
 
-    Promise.prototype['catch'] = function (onRejected) {
+    Promise.prototype["catch"] = function (onRejected) {
       return this.then(null, onRejected);
     };
 
@@ -220,17 +230,27 @@ define(
     };
 
     Promise.all = function () {
-      var args = Array.prototype.slice.call(arguments.length === 1 && isArray(arguments[0]) ? arguments[0] : arguments);
+      var args = Array.prototype.slice.call(
+        arguments.length === 1 && isArray(arguments[0])
+          ? arguments[0]
+          : arguments,
+      );
 
       return new Promise(function (resolve, reject) {
         if (args.length === 0) return resolve([]);
         var remaining = args.length;
         function res(i, val) {
           try {
-            if (val && (typeof val === 'object' || typeof val === 'function')) {
+            if (val && (typeof val === "object" || typeof val === "function")) {
               var then = val.then;
-              if (typeof then === 'function') {
-                then.call(val, function (val) { res(i, val); }, reject);
+              if (typeof then === "function") {
+                then.call(
+                  val,
+                  function (val) {
+                    res(i, val);
+                  },
+                  reject,
+                );
                 return;
               }
             }
@@ -249,7 +269,7 @@ define(
     };
 
     Promise.resolve = function (value) {
-      if (value && typeof value === 'object' && value.constructor === Promise) {
+      if (value && typeof value === "object" && value.constructor === Promise) {
         return value;
       }
 
@@ -275,16 +295,12 @@ define(
     return Promise;
   });
 
-/* jshint ignore:end */
-/* eslint-enable */
+  /* jshint ignore:end */
+  /* eslint-enable */
 
-define(
-  'ephox.imagetools.util.Canvas',
-  [
-  ],
-  function () {
+  define("ephox.imagetools.util.Canvas", [], function () {
     function create(width, height) {
-      return resize(document.createElement('canvas'), width, height);
+      return resize(document.createElement("canvas"), width, height);
     }
 
     function clone(canvas) {
@@ -302,11 +318,12 @@ define(
     function get3dContext(canvas) {
       var gl = null;
       try {
-        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      }
-      catch (e) { }
+        gl =
+          canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      } catch (e) {}
 
-      if (!gl) { // it seems that sometimes it doesn't throw exception, but still fails to get context
+      if (!gl) {
+        // it seems that sometimes it doesn't throw exception, but still fails to get context
         gl = null;
       }
       return gl;
@@ -324,16 +341,12 @@ define(
       clone: clone,
       resize: resize,
       get2dContext: get2dContext,
-      get3dContext: get3dContext
+      get3dContext: get3dContext,
     };
   });
-define(
-  'ephox.imagetools.util.Mime',
-  [
-  ],
-  function () {
+  define("ephox.imagetools.util.Mime", [], function () {
     function getUriPathName(uri) {
-      var a = document.createElement('a');
+      var a = document.createElement("a");
       a.href = uri;
       return a.pathname;
     }
@@ -341,18 +354,18 @@ define(
     function guessMimeType(uri) {
       var parts, ext, mimes, matches;
 
-      if (uri.indexOf('data:') === 0) {
-        uri = uri.split(',');
+      if (uri.indexOf("data:") === 0) {
+        uri = uri.split(",");
         matches = /data:([^;]+)/.exec(uri[0]);
-        return matches ? matches[1] : '';
+        return matches ? matches[1] : "";
       } else {
         mimes = {
-          'jpg': 'image/jpeg',
-          'jpeg': 'image/jpeg',
-          'png': 'image/png'
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          png: "image/png",
         };
 
-        parts = getUriPathName(uri).split('.');
+        parts = getUriPathName(uri).split(".");
         ext = parts[parts.length - 1];
 
         if (ext) {
@@ -362,49 +375,41 @@ define(
       }
     }
 
-
     return {
-      guessMimeType: guessMimeType
+      guessMimeType: guessMimeType,
     };
   });
-define(
-  'ephox.imagetools.util.ImageSize',
-  [
-  ],
-  function() {
-  function getWidth(image) {
-    return image.naturalWidth || image.width;
-  }
+  define("ephox.imagetools.util.ImageSize", [], function () {
+    function getWidth(image) {
+      return image.naturalWidth || image.width;
+    }
 
-  function getHeight(image) {
-    return image.naturalHeight || image.height;
-  }
+    function getHeight(image) {
+      return image.naturalHeight || image.height;
+    }
 
-  return {
-    getWidth: getWidth,
-    getHeight: getHeight
-  };
-});
-define(
-  'ephox.imagetools.util.Conversions',
-  [
-    'ephox.imagetools.util.Promise',
-    'ephox.imagetools.util.Canvas',
-    'ephox.imagetools.util.Mime',
-    'ephox.imagetools.util.ImageSize'
-  ],
-  function (Promise, Canvas, Mime, ImageSize) {
+    return {
+      getWidth: getWidth,
+      getHeight: getHeight,
+    };
+  });
+  define("ephox.imagetools.util.Conversions", [
+    "ephox.imagetools.util.Promise",
+    "ephox.imagetools.util.Canvas",
+    "ephox.imagetools.util.Mime",
+    "ephox.imagetools.util.ImageSize",
+  ], function (Promise, Canvas, Mime, ImageSize) {
     function loadImage(image) {
       return new Promise(function (resolve) {
         function loaded() {
-          image.removeEventListener('load', loaded);
+          image.removeEventListener("load", loaded);
           resolve(image);
         }
 
         if (image.complete) {
           resolve(image);
         } else {
-          image.addEventListener('load', loaded);
+          image.addEventListener("load", loaded);
         }
       });
     }
@@ -413,7 +418,10 @@ define(
       return loadImage(image).then(function (image) {
         var context, canvas;
 
-        canvas = Canvas.create(ImageSize.getWidth(image), ImageSize.getHeight(image));
+        canvas = Canvas.create(
+          ImageSize.getWidth(image),
+          ImageSize.getHeight(image),
+        );
         context = Canvas.get2dContext(canvas);
         context.drawImage(image, 0, 0);
 
@@ -425,11 +433,11 @@ define(
       return loadImage(image).then(function (image) {
         var src = image.src;
 
-        if (src.indexOf('blob:') === 0) {
+        if (src.indexOf("blob:") === 0) {
           return blobUriToBlob(src);
         }
 
-        if (src.indexOf('data:') === 0) {
+        if (src.indexOf("data:") === 0) {
           return dataUriToBlob(src);
         }
 
@@ -444,11 +452,11 @@ define(
         var image = new Image();
 
         function loaded() {
-          image.removeEventListener('load', loaded);
+          image.removeEventListener("load", loaded);
           resolve(image);
         }
 
-        image.addEventListener('load', loaded);
+        image.addEventListener("load", loaded);
         image.src = URL.createObjectURL(blob);
 
         if (image.complete) {
@@ -461,8 +469,8 @@ define(
       return new Promise(function (resolve) {
         var xhr = new XMLHttpRequest();
 
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
+        xhr.open("GET", url, true);
+        xhr.responseType = "blob";
 
         xhr.onload = function () {
           if (this.status == 200) {
@@ -477,7 +485,7 @@ define(
     function dataUriToBlobSync(uri) {
       var str, arr, i, matches, type, blobBuilder;
 
-      uri = uri.split(',');
+      uri = uri.split(",");
 
       matches = /data:([^;]+)/.exec(uri[0]);
       if (matches) {
@@ -513,11 +521,11 @@ define(
     }
 
     function uriToBlob(url) {
-      if (url.indexOf('blob:') === 0) {
+      if (url.indexOf("blob:") === 0) {
         return blobUriToBlob(url);
       }
 
-      if (url.indexOf('data:') === 0) {
+      if (url.indexOf("data:") === 0) {
         return dataUriToBlob(url);
       }
 
@@ -525,13 +533,17 @@ define(
     }
 
     function canvasToBlob(canvas, type, quality) {
-      type = type || 'image/png';
+      type = type || "image/png";
 
       if (HTMLCanvasElement.prototype.toBlob) {
         return new Promise(function (resolve) {
-          canvas.toBlob(function (blob) {
-            resolve(blob);
-          }, type, quality);
+          canvas.toBlob(
+            function (blob) {
+              resolve(blob);
+            },
+            type,
+            quality,
+          );
         });
       } else {
         return dataUriToBlob(canvas.toDataURL(type, quality));
@@ -552,7 +564,7 @@ define(
 
     function blobToBase64(blob) {
       return blobToDataUri(blob).then(function (dataUri) {
-        return dataUri.split(',')[1];
+        return dataUri.split(",")[1];
       });
     }
 
@@ -579,18 +591,15 @@ define(
       // helper method
       uriToBlob: uriToBlob,
       // helper method
-      dataUriToBlobSync: dataUriToBlobSync
+      dataUriToBlobSync: dataUriToBlobSync,
     };
   });
-define(
-  'ephox.imagetools.util.ImageResult',
-  [
-    'ephox.imagetools.util.Promise',
-    'ephox.imagetools.util.Conversions',
-    'ephox.imagetools.util.Mime',
-    'ephox.imagetools.util.Canvas'
-  ],
-  function (Promise, Conversions, Mime, Canvas) {
+  define("ephox.imagetools.util.ImageResult", [
+    "ephox.imagetools.util.Promise",
+    "ephox.imagetools.util.Conversions",
+    "ephox.imagetools.util.Mime",
+    "ephox.imagetools.util.Canvas",
+  ], function (Promise, Conversions, Mime, Canvas) {
     function create(canvas, initialType) {
       function getType() {
         return initialType;
@@ -605,7 +614,7 @@ define(
       }
 
       function toBase64(type, quality) {
-        return toDataURL(type, quality).split(',')[1];
+        return toDataURL(type, quality).split(",")[1];
       }
 
       function toCanvas() {
@@ -617,7 +626,7 @@ define(
         toBlob: toBlob,
         toDataURL: toDataURL,
         toBase64: toBase64,
-        toCanvas: toCanvas
+        toCanvas: toCanvas,
       };
     }
 
@@ -649,17 +658,14 @@ define(
     return {
       fromBlob: fromBlob,
       fromCanvas: fromCanvas,
-      fromImage: fromImage
+      fromImage: fromImage,
     };
   });
 
-define(
-  'ephox.imagetools.api.BlobConversions',
-  [
-    'ephox.imagetools.util.Conversions',
-    'ephox.imagetools.util.ImageResult'
-  ],
-  function (Conversions, ImageResult) {
+  define("ephox.imagetools.api.BlobConversions", [
+    "ephox.imagetools.util.Conversions",
+    "ephox.imagetools.util.ImageResult",
+  ], function (Conversions, ImageResult) {
     var blobToImage = function (image) {
       return Conversions.blobToImage(image);
     };
@@ -676,23 +682,23 @@ define(
       return Conversions.blobToBase64(blob);
     };
 
-    var blobToImageResult = function(blob) {
+    var blobToImageResult = function (blob) {
       return ImageResult.fromBlob(blob);
     };
 
-    var dataUriToImageResult = function(uri) {
+    var dataUriToImageResult = function (uri) {
       return Conversions.uriToBlob(uri).then(ImageResult.fromBlob);
     };
 
-    var imageToImageResult = function(image) {
+    var imageToImageResult = function (image) {
       return ImageResult.fromImage(image);
     };
 
-    var imageResultToBlob = function(ir, type, quality) {
+    var imageResultToBlob = function (ir, type, quality) {
       return ir.toBlob(type, quality);
     };
 
-    var imageResultToBlobSync = function(ir, type, quality) {
+    var imageResultToBlobSync = function (ir, type, quality) {
       return Conversions.dataUriToBlobSync(ir.toDataURL(type, quality));
     };
 
@@ -714,15 +720,10 @@ define(
       // used outside
       imageResultToBlob: imageResultToBlob,
       // just in case
-      imageResultToBlobSync: imageResultToBlobSync
+      imageResultToBlobSync: imageResultToBlobSync,
     };
-  }
-);
-define(
-  'ephox.imagetools.transformations.ColorMatrix',
-  [
-  ],
-  function () {
+  });
+  define("ephox.imagetools.transformations.ColorMatrix", [], function () {
     function clamp(value, min, max) {
       value = parseFloat(value);
 
@@ -737,30 +738,29 @@ define(
 
     function identity() {
       return [
-        1, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1,
       ];
     }
 
     var DELTA_INDEX = [
-      0, 0.01, 0.02, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.11,
-      0.12, 0.14, 0.15, 0.16, 0.17, 0.18, 0.20, 0.21, 0.22, 0.24,
-      0.25, 0.27, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42,
-      0.44, 0.46, 0.48, 0.5, 0.53, 0.56, 0.59, 0.62, 0.65, 0.68,
-      0.71, 0.74, 0.77, 0.80, 0.83, 0.86, 0.89, 0.92, 0.95, 0.98,
-      1.0, 1.06, 1.12, 1.18, 1.24, 1.30, 1.36, 1.42, 1.48, 1.54,
-      1.60, 1.66, 1.72, 1.78, 1.84, 1.90, 1.96, 2.0, 2.12, 2.25,
-      2.37, 2.50, 2.62, 2.75, 2.87, 3.0, 3.2, 3.4, 3.6, 3.8,
-      4.0, 4.3, 4.7, 4.9, 5.0, 5.5, 6.0, 6.5, 6.8, 7.0,
-      7.3, 7.5, 7.8, 8.0, 8.4, 8.7, 9.0, 9.4, 9.6, 9.8,
-      10.0
+      0, 0.01, 0.02, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.11, 0.12, 0.14, 0.15,
+      0.16, 0.17, 0.18, 0.2, 0.21, 0.22, 0.24, 0.25, 0.27, 0.28, 0.3, 0.32,
+      0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5, 0.53, 0.56, 0.59,
+      0.62, 0.65, 0.68, 0.71, 0.74, 0.77, 0.8, 0.83, 0.86, 0.89, 0.92, 0.95,
+      0.98, 1.0, 1.06, 1.12, 1.18, 1.24, 1.3, 1.36, 1.42, 1.48, 1.54, 1.6, 1.66,
+      1.72, 1.78, 1.84, 1.9, 1.96, 2.0, 2.12, 2.25, 2.37, 2.5, 2.62, 2.75, 2.87,
+      3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.3, 4.7, 4.9, 5.0, 5.5, 6.0, 6.5, 6.8, 7.0,
+      7.3, 7.5, 7.8, 8.0, 8.4, 8.7, 9.0, 9.4, 9.6, 9.8, 10.0,
     ];
 
     function multiply(matrix1, matrix2) {
-      var i, j, k, val, col = [], out = new Array(10);
+      var i,
+        j,
+        k,
+        val,
+        col = [],
+        out = new Array(10);
 
       for (i = 0; i < 5; i++) {
         for (j = 0; j < 5; j++) {
@@ -786,7 +786,7 @@ define(
 
       return matrix.map(function (value, index) {
         if (index % 6 === 0) {
-          value = 1.0 - ((1 - value) * adjustValue);
+          value = 1.0 - (1 - value) * adjustValue;
         } else {
           value *= adjustValue;
         }
@@ -802,7 +802,7 @@ define(
       value *= 100;
 
       if (value < 0) {
-        x = 127 + value / 100 * 127;
+        x = 127 + (value / 100) * 127;
       } else {
         x = value % 1;
 
@@ -810,18 +810,40 @@ define(
           x = DELTA_INDEX[value];
         } else {
           // use linear interpolation for more granularity.
-          x = DELTA_INDEX[(Math.floor(value))] * (1 - x) + DELTA_INDEX[(Math.floor(value)) + 1] * x;
+          x =
+            DELTA_INDEX[Math.floor(value)] * (1 - x) +
+            DELTA_INDEX[Math.floor(value) + 1] * x;
         }
 
         x = x * 127 + 127;
       }
 
       return multiply(matrix, [
-        x / 127, 0, 0, 0, 0.5 * (127 - x),
-        0, x / 127, 0, 0, 0.5 * (127 - x),
-        0, 0, x / 127, 0, 0.5 * (127 - x),
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        x / 127,
+        0,
+        0,
+        0,
+        0.5 * (127 - x),
+        0,
+        x / 127,
+        0,
+        0,
+        0.5 * (127 - x),
+        0,
+        0,
+        x / 127,
+        0,
+        0.5 * (127 - x),
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
       ]);
     }
 
@@ -829,24 +851,44 @@ define(
       var x, lumR, lumG, lumB;
 
       value = clamp(value, -1, 1);
-      x = 1 + ((value > 0) ? 3 * value : value);
+      x = 1 + (value > 0 ? 3 * value : value);
       lumR = 0.3086;
       lumG = 0.6094;
-      lumB = 0.0820;
+      lumB = 0.082;
 
       return multiply(matrix, [
-        lumR * (1 - x) + x, lumG * (1 - x), lumB * (1 - x), 0, 0,
-        lumR * (1 - x), lumG * (1 - x) + x, lumB * (1 - x), 0, 0,
-        lumR * (1 - x), lumG * (1 - x), lumB * (1 - x) + x, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        lumR * (1 - x) + x,
+        lumG * (1 - x),
+        lumB * (1 - x),
+        0,
+        0,
+        lumR * (1 - x),
+        lumG * (1 - x) + x,
+        lumB * (1 - x),
+        0,
+        0,
+        lumR * (1 - x),
+        lumG * (1 - x),
+        lumB * (1 - x) + x,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
       ]);
     }
 
     function adjustHue(matrix, angle) {
       var cosVal, sinVal, lumR, lumG, lumB;
 
-      angle = clamp(angle, -180, 180) / 180 * Math.PI;
+      angle = (clamp(angle, -180, 180) / 180) * Math.PI;
       cosVal = Math.cos(angle);
       sinVal = Math.sin(angle);
       lumR = 0.213;
@@ -854,14 +896,31 @@ define(
       lumB = 0.072;
 
       return multiply(matrix, [
-        lumR + cosVal * (1 - lumR) + sinVal * (-lumR), lumG + cosVal * (-lumG) + sinVal * (-lumG),
-        lumB + cosVal * (-lumB) + sinVal * (1 - lumB), 0, 0,
-        lumR + cosVal * (-lumR) + sinVal * (0.143), lumG + cosVal * (1 - lumG) + sinVal * (0.140),
-        lumB + cosVal * (-lumB) + sinVal * (-0.283), 0, 0,
-        lumR + cosVal * (-lumR) + sinVal * (-(1 - lumR)), lumG + cosVal * (-lumG) + sinVal * (lumG),
-        lumB + cosVal * (1 - lumB) + sinVal * (lumB), 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        lumR + cosVal * (1 - lumR) + sinVal * -lumR,
+        lumG + cosVal * -lumG + sinVal * -lumG,
+        lumB + cosVal * -lumB + sinVal * (1 - lumB),
+        0,
+        0,
+        lumR + cosVal * -lumR + sinVal * 0.143,
+        lumG + cosVal * (1 - lumG) + sinVal * 0.14,
+        lumB + cosVal * -lumB + sinVal * -0.283,
+        0,
+        0,
+        lumR + cosVal * -lumR + sinVal * -(1 - lumR),
+        lumG + cosVal * -lumG + sinVal * lumG,
+        lumB + cosVal * (1 - lumB) + sinVal * lumB,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
       ]);
     }
 
@@ -869,11 +928,31 @@ define(
       value = clamp(255 * value, -255, 255);
 
       return multiply(matrix, [
-        1, 0, 0, 0, value,
-        0, 1, 0, 0, value,
-        0, 0, 1, 0, value,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        1,
+        0,
+        0,
+        0,
+        value,
+        0,
+        1,
+        0,
+        0,
+        value,
+        0,
+        0,
+        1,
+        0,
+        value,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
       ]);
     }
 
@@ -883,36 +962,62 @@ define(
       adjustB = clamp(adjustB, 0, 2);
 
       return multiply(matrix, [
-        adjustR, 0, 0, 0, 0,
-        0, adjustG, 0, 0, 0,
-        0, 0, adjustB, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
+        adjustR,
+        0,
+        0,
+        0,
+        0,
+        0,
+        adjustG,
+        0,
+        0,
+        0,
+        0,
+        0,
+        adjustB,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
       ]);
     }
 
     function adjustSepia(matrix, value) {
       value = clamp(value, 0, 1);
 
-      return multiply(matrix, adjust([
-        0.393, 0.769, 0.189, 0, 0,
-        0.349, 0.686, 0.168, 0, 0,
-        0.272, 0.534, 0.131, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
-      ], value));
+      return multiply(
+        matrix,
+        adjust(
+          [
+            0.393, 0.769, 0.189, 0, 0, 0.349, 0.686, 0.168, 0, 0, 0.272, 0.534,
+            0.131, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+          ],
+          value,
+        ),
+      );
     }
 
     function adjustGrayscale(matrix, value) {
       value = clamp(value, 0, 1);
 
-      return multiply(matrix, adjust([
-        0.33, 0.34, 0.33, 0, 0,
-        0.33, 0.34, 0.33, 0, 0,
-        0.33, 0.34, 0.33, 0, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 0, 0, 1
-      ], value));
+      return multiply(
+        matrix,
+        adjust(
+          [
+            0.33, 0.34, 0.33, 0, 0, 0.33, 0.34, 0.33, 0, 0, 0.33, 0.34, 0.33, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+          ],
+          value,
+        ),
+      );
     }
 
     return {
@@ -925,28 +1030,46 @@ define(
       adjustHue: adjustHue,
       adjustColors: adjustColors,
       adjustSepia: adjustSepia,
-      adjustGrayscale: adjustGrayscale
+      adjustGrayscale: adjustGrayscale,
     };
   });
-define(
-  'ephox.imagetools.transformations.Filters',
-  [
-    'ephox.imagetools.util.Canvas',
-    'ephox.imagetools.util.ImageResult',
-    'ephox.imagetools.transformations.ColorMatrix'
-  ],
-  function (Canvas, ImageResult, ColorMatrix) {
+  define("ephox.imagetools.transformations.Filters", [
+    "ephox.imagetools.util.Canvas",
+    "ephox.imagetools.util.ImageResult",
+    "ephox.imagetools.transformations.ColorMatrix",
+  ], function (Canvas, ImageResult, ColorMatrix) {
     function colorFilter(ir, matrix) {
       var canvas = ir.toCanvas();
       var context = Canvas.get2dContext(canvas);
       var pixels;
 
       function applyMatrix(pixels, m) {
-        var d = pixels.data, r, g, b, a, i,
-          m0 = m[0], m1 = m[1], m2 = m[2], m3 = m[3], m4 = m[4],
-          m5 = m[5], m6 = m[6], m7 = m[7], m8 = m[8], m9 = m[9],
-          m10 = m[10], m11 = m[11], m12 = m[12], m13 = m[13], m14 = m[14],
-          m15 = m[15], m16 = m[16], m17 = m[17], m18 = m[18], m19 = m[19];
+        var d = pixels.data,
+          r,
+          g,
+          b,
+          a,
+          i,
+          m0 = m[0],
+          m1 = m[1],
+          m2 = m[2],
+          m3 = m[3],
+          m4 = m[4],
+          m5 = m[5],
+          m6 = m[6],
+          m7 = m[7],
+          m8 = m[8],
+          m9 = m[9],
+          m10 = m[10],
+          m11 = m[11],
+          m12 = m[12],
+          m13 = m[13],
+          m14 = m[14],
+          m15 = m[15],
+          m16 = m[16],
+          m17 = m[17],
+          m18 = m[18],
+          m19 = m[19];
 
         for (i = 0; i < d.length; i += 4) {
           r = d[i];
@@ -963,7 +1086,10 @@ define(
         return pixels;
       }
 
-      pixels = applyMatrix(context.getImageData(0, 0, canvas.width, canvas.height), matrix);
+      pixels = applyMatrix(
+        context.getImageData(0, 0, canvas.width, canvas.height),
+        matrix,
+      );
       context.putImageData(pixels, 0, 0);
 
       return ImageResult.fromCanvas(canvas, ir.getType());
@@ -975,8 +1101,23 @@ define(
       var pixelsIn, pixelsOut;
 
       function applyMatrix(pixelsIn, pixelsOut, matrix) {
-        var rgba, drgba, side, halfSide, x, y, r, g, b,
-          cx, cy, scx, scy, offset, wt, w, h;
+        var rgba,
+          drgba,
+          side,
+          halfSide,
+          x,
+          y,
+          r,
+          g,
+          b,
+          cx,
+          cy,
+          scx,
+          scy,
+          offset,
+          wt,
+          w,
+          h;
 
         function clamp(value, min, max) {
           if (value > max) {
@@ -1039,10 +1180,13 @@ define(
       return function (ir, value) {
         var canvas = ir.toCanvas();
         var context = Canvas.get2dContext(canvas);
-        var pixels, i, lookup = new Array(256);
+        var pixels,
+          i,
+          lookup = new Array(256);
 
         function applyLookup(pixels, lookup) {
-          var d = pixels.data, i;
+          var d = pixels.data,
+            i;
 
           for (i = 0; i < d.length; i += 4) {
             d[i] = lookup[d[i]];
@@ -1057,7 +1201,10 @@ define(
           lookup[i] = colorFn(i, value);
         }
 
-        pixels = applyLookup(context.getImageData(0, 0, canvas.width, canvas.height), lookup);
+        pixels = applyLookup(
+          context.getImageData(0, 0, canvas.width, canvas.height),
+          lookup,
+        );
         context.putImageData(pixels, 0, 0);
 
         return ImageResult.fromCanvas(canvas, ir.getType());
@@ -1084,10 +1231,7 @@ define(
 
     return {
       invert: basicColorFilter([
-        -1, 0, 0, 0, 255,
-        0, -1, 0, 0, 255,
-        0, 0, -1, 0, 255,
-        0, 0, 0, 1, 0
+        -1, 0, 0, 0, 255, 0, -1, 0, 0, 255, 0, 0, -1, 0, 255, 0, 0, 0, 1, 0,
       ]),
 
       brightness: complexAdjustableColorFilter(ColorMatrix.adjustBrightness),
@@ -1097,20 +1241,20 @@ define(
       grayscale: complexAdjustableColorFilter(ColorMatrix.adjustGrayscale),
       sepia: complexAdjustableColorFilter(ColorMatrix.adjustSepia),
       colorize: function (ir, adjustR, adjustG, adjustB) {
-        return colorFilter(ir, ColorMatrix.adjustColors(ColorMatrix.identity(), adjustR, adjustG, adjustB));
+        return colorFilter(
+          ir,
+          ColorMatrix.adjustColors(
+            ColorMatrix.identity(),
+            adjustR,
+            adjustG,
+            adjustB,
+          ),
+        );
       },
 
-      sharpen: basicConvolutionFilter([
-        0, -1, 0,
-        -1, 5, -1,
-        0, -1, 0
-      ]),
+      sharpen: basicConvolutionFilter([0, -1, 0, -1, 5, -1, 0, -1, 0]),
 
-      emboss: basicConvolutionFilter([
-        -2, -1, 0,
-        -1, 1, 1,
-        0, 1, 2
-      ]),
+      emboss: basicConvolutionFilter([-2, -1, 0, -1, 1, 1, 0, 1, 2]),
 
       gamma: functionColorFilter(function (color, value) {
         return Math.pow(color / 255, 1 - value) * 255;
@@ -1121,18 +1265,15 @@ define(
       }),
 
       colorFilter: colorFilter,
-      convoluteFilter: convoluteFilter
+      convoluteFilter: convoluteFilter,
     };
   });
-define(
-  'ephox.imagetools.transformations.ImageResizerCanvas',
-  [
-    'ephox.imagetools.util.Promise',
-    'ephox.imagetools.util.Conversions',
-    'ephox.imagetools.util.Canvas',
-    'ephox.imagetools.util.ImageSize'
-  ],
-  function (Promise, Conversions, Canvas, ImageSize) {
+  define("ephox.imagetools.transformations.ImageResizerCanvas", [
+    "ephox.imagetools.util.Promise",
+    "ephox.imagetools.util.Conversions",
+    "ephox.imagetools.util.Canvas",
+    "ephox.imagetools.util.ImageSize",
+  ], function (Promise, Conversions, Canvas, ImageSize) {
     /**
      * @method scale
      * @static
@@ -1159,11 +1300,12 @@ define(
 
       var scaled = _scale(image, wRatio, hRatio);
 
-      return !scaleCapped ? scaled : scaled.then(function (tCanvas) {
-        return scale(tCanvas, dW, dH);
-      });
+      return !scaleCapped
+        ? scaled
+        : scaled.then(function (tCanvas) {
+            return scale(tCanvas, dW, dH);
+          });
     }
-
 
     function _scale(image, wRatio, hRatio) {
       return new Promise(function (resolve) {
@@ -1181,24 +1323,21 @@ define(
     }
 
     return {
-      scale: scale
+      scale: scale,
     };
-
   });
 
-define(
-  'ephox.imagetools.transformations.ImageTools',
-  [
-    'ephox.imagetools.util.Canvas',
-    'ephox.imagetools.util.ImageResult',
-    'ephox.imagetools.transformations.ImageResizerCanvas'
-  ],
-  function (Canvas, ImageResult, ImageResizerCanvas) {
+  define("ephox.imagetools.transformations.ImageTools", [
+    "ephox.imagetools.util.Canvas",
+    "ephox.imagetools.util.ImageResult",
+    "ephox.imagetools.transformations.ImageResizerCanvas",
+  ], function (Canvas, ImageResult, ImageResizerCanvas) {
     function rotate(ir, angle) {
       var image = ir.toCanvas();
       var canvas = Canvas.create(image.width, image.height);
       var context = Canvas.get2dContext(canvas);
-      var translateX = 0, translateY = 0;
+      var translateX = 0,
+        translateY = 0;
 
       angle = angle < 0 ? 360 + angle : angle;
 
@@ -1215,7 +1354,7 @@ define(
       }
 
       context.translate(translateX, translateY);
-      context.rotate(angle * Math.PI / 180);
+      context.rotate((angle * Math.PI) / 180);
       context.drawImage(image, 0, 0);
 
       return ImageResult.fromCanvas(canvas, ir.getType());
@@ -1226,7 +1365,7 @@ define(
       var canvas = Canvas.create(image.width, image.height);
       var context = Canvas.get2dContext(canvas);
 
-      if (axis == 'v') {
+      if (axis == "v") {
         context.scale(1, -1);
         context.drawImage(image, 0, -canvas.height);
       } else {
@@ -1247,29 +1386,26 @@ define(
       return ImageResult.fromCanvas(canvas, ir.getType());
     }
 
-
     function resize(ir, w, h) {
-      return ImageResizerCanvas.scale(ir.toCanvas(), w, h)
-        .then(function (canvas) {
+      return ImageResizerCanvas.scale(ir.toCanvas(), w, h).then(
+        function (canvas) {
           return ImageResult.fromCanvas(canvas, ir.getType());
-        });
+        },
+      );
     }
 
     return {
       rotate: rotate,
       flip: flip,
       crop: crop,
-      resize: resize
+      resize: resize,
     };
   });
 
-define(
-  'ephox.imagetools.api.ImageTransformations',
-  [
-    'ephox.imagetools.transformations.Filters',
-    'ephox.imagetools.transformations.ImageTools'
-  ],
-  function (Filters, ImageTools) {
+  define("ephox.imagetools.api.ImageTransformations", [
+    "ephox.imagetools.transformations.Filters",
+    "ephox.imagetools.transformations.ImageTools",
+  ], function (Filters, ImageTools) {
     var invert = function (ir) {
       return Filters.invert(ir);
     };
@@ -1351,146 +1487,117 @@ define(
       flip: flip,
       crop: crop,
       resize: resize,
-      rotate: rotate
+      rotate: rotate,
     };
-  }
-);
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.Env',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.Env');
-  }
-);
+  define("tinymce.core.Env", ["global!tinymce.util.Tools.resolve"], function (
+    resolve,
+  ) {
+    return resolve("tinymce.Env");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Delay',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Delay');
-  }
-);
+  define("tinymce.core.util.Delay", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Delay");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Promise',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Promise');
-  }
-);
+  define("tinymce.core.util.Promise", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Promise");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Tools',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Tools');
-  }
-);
+  define("tinymce.core.util.Tools", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Tools");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.URI',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.URI');
-  }
-);
+  define("tinymce.core.util.URI", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.URI");
+  });
 
-/**
- * ImageSize.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ImageSize.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.core.ImageSize',
-  [
-  ],
-  function () {
+  define("tinymce.plugins.imagetools.core.ImageSize", [], function () {
     function getImageSize(img) {
       var width, height;
 
@@ -1504,7 +1611,7 @@ define(
         if (isPxValue(width) && isPxValue(height)) {
           return {
             w: parseInt(width, 10),
-            h: parseInt(height, 10)
+            h: parseInt(height, 10),
           };
         }
 
@@ -1517,7 +1624,7 @@ define(
       if (width && height) {
         return {
           w: parseInt(width, 10),
-          h: parseInt(height, 10)
+          h: parseInt(height, 10),
         };
       }
 
@@ -1532,17 +1639,17 @@ define(
         height = img.style.height;
 
         if (width || height) {
-          img.style.width = size.w + 'px';
-          img.style.height = size.h + 'px';
-          img.removeAttribute('data-mce-style');
+          img.style.width = size.w + "px";
+          img.style.height = size.h + "px";
+          img.removeAttribute("data-mce-style");
         }
 
         width = img.width;
         height = img.height;
 
         if (width || height) {
-          img.setAttribute('width', size.w);
-          img.setAttribute('height', size.h);
+          img.setAttribute("width", size.w);
+          img.setAttribute("height", size.h);
         }
       }
     }
@@ -1550,31 +1657,24 @@ define(
     function getNaturalImageSize(img) {
       return {
         w: img.naturalWidth,
-        h: img.naturalHeight
+        h: img.naturalHeight,
       };
     }
 
     return {
       getImageSize: getImageSize,
       setImageSize: setImageSize,
-      getNaturalImageSize: getNaturalImageSize
+      getNaturalImageSize: getNaturalImageSize,
     };
-  }
-);
+  });
 
-defineGlobal("global!Array", Array);
-defineGlobal("global!Error", Error);
-define(
-  'ephox.katamari.api.Fun',
-
-  [
-    'global!Array',
-    'global!Error'
-  ],
-
-  function (Array, Error) {
-
-    var noop = function () { };
+  defineGlobal("global!Array", Array);
+  defineGlobal("global!Error", Error);
+  define("ephox.katamari.api.Fun", ["global!Array", "global!Error"], function (
+    Array,
+    Error,
+  ) {
+    var noop = function () {};
 
     var compose = function (fa, fb) {
       return function () {
@@ -1592,7 +1692,7 @@ define(
       return x;
     };
 
-    var tripleEquals = function(a, b) {
+    var tripleEquals = function (a, b) {
       return a === b;
     };
 
@@ -1603,7 +1703,7 @@ define(
       // Pay attention to what variable is where, and the -1 magic.
       // thankfully, we have tests for this.
       var args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++) args[i-1] = arguments[i];
+      for (var i = 1; i < arguments.length; i++) args[i - 1] = arguments[i];
 
       return function () {
         var newArgs = new Array(arguments.length);
@@ -1630,13 +1730,12 @@ define(
       return f();
     };
 
-    var call = function(f) {
+    var call = function (f) {
       f();
     };
 
     var never = constant(false);
     var always = constant(true);
-    
 
     return {
       noop: noop,
@@ -1650,22 +1749,15 @@ define(
       apply: apply,
       call: call,
       never: never,
-      always: always
+      always: always,
     };
-  }
-);
+  });
 
-defineGlobal("global!Object", Object);
-define(
-  'ephox.katamari.api.Option',
-
-  [
-    'ephox.katamari.api.Fun',
-    'global!Object'
-  ],
-
-  function (Fun, Object) {
-
+  defineGlobal("global!Object", Object);
+  define("ephox.katamari.api.Option", [
+    "ephox.katamari.api.Fun",
+    "global!Object",
+  ], function (Fun, Object) {
     var never = Fun.never;
     var always = Fun.always;
 
@@ -1725,7 +1817,9 @@ define(
 
     */
 
-    var none = function () { return NONE; };
+    var none = function () {
+      return NONE;
+    };
 
     var NONE = (function () {
       var eq = function (o) {
@@ -1733,19 +1827,25 @@ define(
       };
 
       // inlined from peanut, maybe a micro-optimisation?
-      var call = function (thunk) { return thunk(); };
-      var id = function (n) { return n; };
-      var noop = function () { };
+      var call = function (thunk) {
+        return thunk();
+      };
+      var id = function (n) {
+        return n;
+      };
+      var noop = function () {};
 
       var me = {
-        fold: function (n, s) { return n(); },
+        fold: function (n, s) {
+          return n();
+        },
         is: never,
         isSome: never,
         isNone: always,
         getOr: id,
         getOrThunk: call,
         getOrDie: function (msg) {
-          throw new Error(msg || 'error: getOrDie called on none.');
+          throw new Error(msg || "error: getOrDie called on none.");
         },
         or: id,
         orThunk: call,
@@ -1759,19 +1859,21 @@ define(
         filter: none,
         equals: eq,
         equals_: eq,
-        toArray: function () { return []; },
-        toString: Fun.constant("none()")
+        toArray: function () {
+          return [];
+        },
+        toString: Fun.constant("none()"),
       };
       if (Object.freeze) Object.freeze(me);
       return me;
     })();
 
-
     /** some :: a -> Option a */
     var some = function (a) {
-
       // inlined from peanut, maybe a micro-optimisation?
-      var constant_a = function () { return a; };
+      var constant_a = function () {
+        return a;
+      };
 
       var self = function () {
         // can't Fun.constant this one
@@ -1787,8 +1889,12 @@ define(
       };
 
       var me = {
-        fold: function (n, s) { return s(a); },
-        is: function (v) { return a === v; },
+        fold: function (n, s) {
+          return s(a);
+        },
+        is: function (v) {
+          return a === v;
+        },
         isSome: always,
         isNone: never,
         getOr: constant_a,
@@ -1798,7 +1904,7 @@ define(
         orThunk: self,
         map: map,
         ap: function (optfab) {
-          return optfab.fold(none, function(fab) {
+          return optfab.fold(none, function (fab) {
             return some(fab(a));
           });
         },
@@ -1816,17 +1922,16 @@ define(
           return o.is(a);
         },
         equals_: function (o, elementEq) {
-          return o.fold(
-            never,
-            function (b) { return elementEq(a, b); }
-          );
+          return o.fold(never, function (b) {
+            return elementEq(a, b);
+          });
         },
         toArray: function () {
           return [a];
         },
         toString: function () {
-          return 'some(' + a + ')';
-        }
+          return "some(" + a + ")";
+        },
       };
       return me;
     };
@@ -1839,31 +1944,29 @@ define(
     return {
       some: some,
       none: none,
-      from: from
+      from: from,
     };
-  }
-);
+  });
 
-defineGlobal("global!String", String);
-define(
-  'ephox.katamari.api.Arr',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Array',
-    'global!Error',
-    'global!String'
-  ],
-
-  function (Option, Array, Error, String) {
+  defineGlobal("global!String", String);
+  define("ephox.katamari.api.Arr", [
+    "ephox.katamari.api.Option",
+    "global!Array",
+    "global!Error",
+    "global!String",
+  ], function (Option, Array, Error, String) {
     // Use the native Array.indexOf if it is available (IE9+) otherwise fall back to manual iteration
     // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
     var rawIndexOf = (function () {
       var pIndexOf = Array.prototype.indexOf;
 
-      var fastIndex = function (xs, x) { return  pIndexOf.call(xs, x); };
+      var fastIndex = function (xs, x) {
+        return pIndexOf.call(xs, x);
+      };
 
-      var slowIndex = function(xs, x) { return slowIndexOf(xs, x); };
+      var slowIndex = function (xs, x) {
+        return slowIndexOf(xs, x);
+      };
 
       return pIndexOf === undefined ? slowIndex : fastIndex;
     })();
@@ -1908,7 +2011,7 @@ define(
       return r;
     };
 
-    var map = function(xs, f) {
+    var map = function (xs, f) {
       // pre-allocating array size when it's guaranteed to be known
       // http://jsperf.com/push-allocated-vs-dynamic/22
       var len = xs.length;
@@ -1922,7 +2025,7 @@ define(
 
     // Unwound implementing other functions in terms of each.
     // The code size is roughly the same, and it should allow for better optimisation.
-    var each = function(xs, f) {
+    var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         f(x, i, xs);
@@ -1936,7 +2039,7 @@ define(
       }
     };
 
-    var partition = function(xs, pred) {
+    var partition = function (xs, pred) {
       var pass = [];
       var fail = [];
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -1947,7 +2050,7 @@ define(
       return { pass: pass, fail: fail };
     };
 
-    var filter = function(xs, pred) {
+    var filter = function (xs, pred) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -2048,7 +2151,10 @@ define(
       var r = [];
       for (var i = 0, len = xs.length; i < len; ++i) {
         // Ensure that each value is an array itself
-        if (! Array.prototype.isPrototypeOf(xs[i])) throw new Error('Arr.flatten item ' + i + ' was not an array, input: ' + xs);
+        if (!Array.prototype.isPrototypeOf(xs[i]))
+          throw new Error(
+            "Arr.flatten item " + i + " was not an array, input: " + xs,
+          );
         push.apply(r, xs[i]);
       }
       return r;
@@ -2070,9 +2176,12 @@ define(
     };
 
     var equal = function (a1, a2) {
-      return a1.length === a2.length && forall(a1, function (x, i) {
-        return x === a2[i];
-      });
+      return (
+        a1.length === a2.length &&
+        forall(a1, function (x, i) {
+          return x === a2[i];
+        })
+      );
     };
 
     var slice = Array.prototype.slice;
@@ -2088,7 +2197,7 @@ define(
       });
     };
 
-    var mapToObject = function(xs, f) {
+    var mapToObject = function (xs, f) {
       var r = {};
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -2097,7 +2206,7 @@ define(
       return r;
     };
 
-    var pure = function(x) {
+    var pure = function (x) {
       return [x];
     };
 
@@ -2131,27 +2240,23 @@ define(
       mapToObject: mapToObject,
       pure: pure,
       sort: sort,
-      range: range
+      range: range,
     };
-  }
-);
-/**
- * Utils.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  /**
+   * Utils.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.core.Utils',
-  [
-    'tinymce.core.util.Promise',
-    'tinymce.core.util.Tools'
-  ],
-  function (Promise, Tools) {
+  define("tinymce.plugins.imagetools.core.Utils", [
+    "tinymce.core.util.Promise",
+    "tinymce.core.util.Tools",
+  ], function (Promise, Tools) {
     var isValue = function (obj) {
       return obj !== null && obj !== undefined;
     };
@@ -2176,18 +2281,18 @@ define(
           if (xhr.readyState === 4) {
             resolve({
               status: xhr.status,
-              blob: this.response
+              blob: this.response,
             });
           }
         };
 
-        xhr.open('GET', url, true);
+        xhr.open("GET", url, true);
 
         Tools.each(headers, function (value, key) {
           xhr.setRequestHeader(key, value);
         });
 
-        xhr.responseType = 'blob';
+        xhr.responseType = "blob";
         xhr.send();
       });
     };
@@ -2221,31 +2326,34 @@ define(
       traverse: traverse,
       readBlob: readBlob,
       requestUrlAsBlob: requestUrlAsBlob,
-      parseJson: parseJson
+      parseJson: parseJson,
     };
-  }
-);
+  });
 
-define(
-  'tinymce.plugins.imagetools.core.Errors',
-
-  [
-    'ephox.katamari.api.Arr',
-    'ephox.katamari.api.Fun',
-    'tinymce.core.util.Promise',
-    'tinymce.plugins.imagetools.core.Utils'
-  ],
-
-  function (Arr, Fun, Promise, Utils) {
+  define("tinymce.plugins.imagetools.core.Errors", [
+    "ephox.katamari.api.Arr",
+    "ephox.katamari.api.Fun",
+    "tinymce.core.util.Promise",
+    "tinymce.plugins.imagetools.core.Utils",
+  ], function (Arr, Fun, Promise, Utils) {
     var friendlyHttpErrors = [
-      { code: 404, message: 'Could not find Image Proxy' },
-      { code: 403, message: 'Rejected request' },
-      { code: 0, message: 'Incorrect Image Proxy URL' }
+      { code: 404, message: "Could not find Image Proxy" },
+      { code: 403, message: "Rejected request" },
+      { code: 0, message: "Incorrect Image Proxy URL" },
     ];
     var friendlyServiceErrors = [
-      { type: 'key_missing', message: 'The request did not include an api key.' },
-      { type: 'key_not_found', message: 'The provided api key could not be found.' },
-      { type: 'domain_not_trusted', message: 'The api key is not valid for the request origins.' }
+      {
+        type: "key_missing",
+        message: "The request did not include an api key.",
+      },
+      {
+        type: "key_not_found",
+        message: "The provided api key could not be found.",
+      },
+      {
+        type: "domain_not_trusted",
+        message: "The api key is not valid for the request origins.",
+      },
     ];
 
     var isServiceErrorCode = function (code) {
@@ -2255,12 +2363,9 @@ define(
     var getHttpErrorMsg = function (status) {
       var message = Arr.find(friendlyHttpErrors, function (error) {
         return status === error.code;
-      }).fold(
-        Fun.constant('Unknown ImageProxy error'),
-        function (error) {
-          return error.message;
-        }
-      );
+      }).fold(Fun.constant("Unknown ImageProxy error"), function (error) {
+        return error.message;
+      });
 
       return "ImageProxy HTTP error: " + message;
     };
@@ -2274,18 +2379,17 @@ define(
     var getServiceErrorMsg = function (type) {
       return Arr.find(friendlyServiceErrors, function (error) {
         return error.type === type;
-      }).fold(
-        Fun.constant('Unknown service error'),
-        function (error) {
-          return error.message;
-        }
-      );
+      }).fold(Fun.constant("Unknown service error"), function (error) {
+        return error.message;
+      });
     };
 
     var getServiceError = function (text) {
       var serviceError = Utils.parseJson(text);
-      var errorType = Utils.traverse(serviceError, ['error', 'type']);
-      var errorMsg = errorType ? getServiceErrorMsg(errorType) : 'Invalid JSON in service error message';
+      var errorType = Utils.traverse(serviceError, ["error", "type"]);
+      var errorMsg = errorType
+        ? getServiceErrorMsg(errorType)
+        : "Invalid JSON in service error message";
 
       return "ImageProxy Service error: " + errorMsg;
     };
@@ -2299,63 +2403,64 @@ define(
     };
 
     var handleServiceErrorResponse = function (status, blob) {
-      return isServiceErrorCode(status) ? handleServiceError(status, blob) : handleHttpError(status);
+      return isServiceErrorCode(status)
+        ? handleServiceError(status, blob)
+        : handleHttpError(status);
     };
 
     return {
       handleServiceErrorResponse: handleServiceErrorResponse,
       handleHttpError: handleHttpError,
       getHttpErrorMsg: getHttpErrorMsg,
-      getServiceErrorMsg: getServiceErrorMsg
+      getServiceErrorMsg: getServiceErrorMsg,
     };
-  }
-);
+  });
 
-/**
- * Proxy.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Proxy.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * Handles loading images though a proxy for working around cors.
- */
-define(
-  'tinymce.plugins.imagetools.core.Proxy',
-  [
-    'tinymce.core.util.Promise',
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.imagetools.core.Errors',
-    'tinymce.plugins.imagetools.core.Utils'
-  ],
-  function (Promise, Tools, Errors, Utils) {
+  /**
+   * Handles loading images though a proxy for working around cors.
+   */
+  define("tinymce.plugins.imagetools.core.Proxy", [
+    "tinymce.core.util.Promise",
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.imagetools.core.Errors",
+    "tinymce.plugins.imagetools.core.Utils",
+  ], function (Promise, Tools, Errors, Utils) {
     var appendApiKey = function (url, apiKey) {
-      var separator = url.indexOf('?') === -1 ? '?' : '&';
+      var separator = url.indexOf("?") === -1 ? "?" : "&";
       if (/[?&]apiKey=/.test(url) || !apiKey) {
         return url;
       } else {
-        return url + separator + 'apiKey=' + encodeURIComponent(apiKey);
+        return url + separator + "apiKey=" + encodeURIComponent(apiKey);
       }
     };
 
     var requestServiceBlob = function (url, apiKey) {
       return Utils.requestUrlAsBlob(appendApiKey(url, apiKey), {
-        'Content-Type': 'application/json;charset=UTF-8',
-        'tiny-api-key': apiKey
+        "Content-Type": "application/json;charset=UTF-8",
+        "tiny-api-key": apiKey,
       }).then(function (result) {
-        return result.status < 200 || result.status >= 300 ? Errors.handleServiceErrorResponse(result.status, result.blob) : Promise.resolve(result.blob);
+        return result.status < 200 || result.status >= 300
+          ? Errors.handleServiceErrorResponse(result.status, result.blob)
+          : Promise.resolve(result.blob);
       });
     };
 
     function requestBlob(url) {
-      return Utils.requestUrlAsBlob(url, {})
-        .then(function (result) {
-          return result.status < 200 || result.status >= 300 ? Errors.handleHttpError(result.status) : Promise.resolve(result.blob);
-        });
+      return Utils.requestUrlAsBlob(url, {}).then(function (result) {
+        return result.status < 200 || result.status >= 300
+          ? Errors.handleHttpError(result.status)
+          : Promise.resolve(result.blob);
+      });
     }
 
     var getUrl = function (url, apiKey) {
@@ -2363,243 +2468,255 @@ define(
     };
 
     return {
-      getUrl: getUrl
+      getUrl: getUrl,
     };
-  }
-);
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.dom.DOMUtils',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.dom.DOMUtils');
-  }
-);
+  define("tinymce.core.dom.DOMUtils", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.dom.DOMUtils");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Container',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Container');
-  }
-);
+  define("tinymce.core.ui.Container", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Container");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Factory',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Factory');
-  }
-);
+  define("tinymce.core.ui.Factory", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Factory");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Form',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Form');
-  }
-);
+  define("tinymce.core.ui.Form", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Form");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.geom.Rect',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.geom.Rect');
-  }
-);
+  define("tinymce.core.geom.Rect", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.geom.Rect");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Control',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Control');
-  }
-);
+  define("tinymce.core.ui.Control", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Control");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.DragHelper',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.DragHelper');
-  }
-);
+  define("tinymce.core.ui.DragHelper", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.DragHelper");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.dom.DomQuery',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.dom.DomQuery');
-  }
-);
+  define("tinymce.core.dom.DomQuery", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.dom.DomQuery");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Observable',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Observable');
-  }
-);
+  define("tinymce.core.util.Observable", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Observable");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.VK',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.VK');
-  }
-);
+  define("tinymce.core.util.VK", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.VK");
+  });
 
-/**
- * CropRect.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * CropRect.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.ui.CropRect',
-  [
-    'tinymce.core.dom.DomQuery',
-    'tinymce.core.ui.DragHelper',
-    'tinymce.core.geom.Rect',
-    'tinymce.core.util.Tools',
-    'tinymce.core.util.Observable',
-    'tinymce.core.util.VK'
-  ],
-  function ($, DragHelper, Rect, Tools, Observable, VK) {
+  define("tinymce.plugins.imagetools.ui.CropRect", [
+    "tinymce.core.dom.DomQuery",
+    "tinymce.core.ui.DragHelper",
+    "tinymce.core.geom.Rect",
+    "tinymce.core.util.Tools",
+    "tinymce.core.util.Observable",
+    "tinymce.core.util.VK",
+  ], function ($, DragHelper, Rect, Tools, Observable, VK) {
     var count = 0;
 
-    return function (currentRect, viewPortRect, clampRect, containerElm, action) {
-      var instance, handles, dragHelpers, blockers, prefix = 'mce-', id = prefix + 'crid-' + (count++);
+    return function (
+      currentRect,
+      viewPortRect,
+      clampRect,
+      containerElm,
+      action,
+    ) {
+      var instance,
+        handles,
+        dragHelpers,
+        blockers,
+        prefix = "mce-",
+        id = prefix + "crid-" + count++;
 
       handles = [
-        { name: 'move', xMul: 0, yMul: 0, deltaX: 1, deltaY: 1, deltaW: 0, deltaH: 0, label: 'Crop Mask' },
-        { name: 'nw', xMul: 0, yMul: 0, deltaX: 1, deltaY: 1, deltaW: -1, deltaH: -1, label: 'Top Left Crop Handle' },
-        { name: 'ne', xMul: 1, yMul: 0, deltaX: 0, deltaY: 1, deltaW: 1, deltaH: -1, label: 'Top Right Crop Handle' },
-        { name: 'sw', xMul: 0, yMul: 1, deltaX: 1, deltaY: 0, deltaW: -1, deltaH: 1, label: 'Bottom Left Crop Handle' },
-        { name: 'se', xMul: 1, yMul: 1, deltaX: 0, deltaY: 0, deltaW: 1, deltaH: 1, label: 'Bottom Right Crop Handle' }
+        {
+          name: "move",
+          xMul: 0,
+          yMul: 0,
+          deltaX: 1,
+          deltaY: 1,
+          deltaW: 0,
+          deltaH: 0,
+          label: "Crop Mask",
+        },
+        {
+          name: "nw",
+          xMul: 0,
+          yMul: 0,
+          deltaX: 1,
+          deltaY: 1,
+          deltaW: -1,
+          deltaH: -1,
+          label: "Top Left Crop Handle",
+        },
+        {
+          name: "ne",
+          xMul: 1,
+          yMul: 0,
+          deltaX: 0,
+          deltaY: 1,
+          deltaW: 1,
+          deltaH: -1,
+          label: "Top Right Crop Handle",
+        },
+        {
+          name: "sw",
+          xMul: 0,
+          yMul: 1,
+          deltaX: 1,
+          deltaY: 0,
+          deltaW: -1,
+          deltaH: 1,
+          label: "Bottom Left Crop Handle",
+        },
+        {
+          name: "se",
+          xMul: 1,
+          yMul: 1,
+          deltaX: 0,
+          deltaY: 0,
+          deltaW: 1,
+          deltaH: 1,
+          label: "Bottom Right Crop Handle",
+        },
       ];
 
       blockers = ["top", "right", "bottom", "left"];
@@ -2609,7 +2726,7 @@ define(
           x: relativeRect.x + outerRect.x,
           y: relativeRect.y + outerRect.y,
           w: relativeRect.w,
-          h: relativeRect.h
+          h: relativeRect.h,
         };
       }
 
@@ -2618,7 +2735,7 @@ define(
           x: innerRect.x - outerRect.x,
           y: innerRect.y - outerRect.y,
           w: innerRect.w,
-          h: innerRect.h
+          h: innerRect.h,
         };
       }
 
@@ -2647,10 +2764,14 @@ define(
           h = 20;
         }
 
-        rect = currentRect = Rect.clamp({ x: x, y: y, w: w, h: h }, clampRect, handle.name == 'move');
+        rect = currentRect = Rect.clamp(
+          { x: x, y: y, w: w, h: h },
+          clampRect,
+          handle.name == "move",
+        );
         rect = getRelativeRect(clampRect, rect);
 
-        instance.fire('updateRect', { rect: rect });
+        instance.fire("updateRect", { rect: rect });
         setInnerRect(rect);
       }
 
@@ -2660,7 +2781,7 @@ define(
 
           return new DragHelper(id, {
             document: containerElm.ownerDocument,
-            handle: id + '-' + handle.name,
+            handle: id + "-" + handle.name,
 
             start: function () {
               startRect = currentRect;
@@ -2668,27 +2789,48 @@ define(
 
             drag: function (e) {
               moveRect(handle, startRect, e.deltaX, e.deltaY);
-            }
+            },
           });
         }
 
         $(
-          '<div id="' + id + '" class="' + prefix + 'croprect-container"' +
-          ' role="grid" aria-dropeffect="execute">'
+          '<div id="' +
+            id +
+            '" class="' +
+            prefix +
+            'croprect-container"' +
+            ' role="grid" aria-dropeffect="execute">',
         ).appendTo(containerElm);
 
         Tools.each(blockers, function (blocker) {
-          $('#' + id, containerElm).append(
-            '<div id="' + id + '-' + blocker + '"class="' + prefix + 'croprect-block" style="display: none" data-mce-bogus="all">'
+          $("#" + id, containerElm).append(
+            '<div id="' +
+              id +
+              "-" +
+              blocker +
+              '"class="' +
+              prefix +
+              'croprect-block" style="display: none" data-mce-bogus="all">',
           );
         });
 
         Tools.each(handles, function (handle) {
-          $('#' + id, containerElm).append(
-            '<div id="' + id + '-' + handle.name + '" class="' + prefix +
-            'croprect-handle ' + prefix + 'croprect-handle-' + handle.name + '"' +
-            'style="display: none" data-mce-bogus="all" role="gridcell" tabindex="-1"' +
-            ' aria-label="' + handle.label + '" aria-grabbed="false">'
+          $("#" + id, containerElm).append(
+            '<div id="' +
+              id +
+              "-" +
+              handle.name +
+              '" class="' +
+              prefix +
+              "croprect-handle " +
+              prefix +
+              "croprect-handle-" +
+              handle.name +
+              '"' +
+              'style="display: none" data-mce-bogus="all" role="gridcell" tabindex="-1"' +
+              ' aria-label="' +
+              handle.label +
+              '" aria-grabbed="false">',
           );
         });
 
@@ -2696,15 +2838,15 @@ define(
 
         repaint(currentRect);
 
-        $(containerElm).on('focusin focusout', function (e) {
-          $(e.target).attr('aria-grabbed', e.type === 'focus');
+        $(containerElm).on("focusin focusout", function (e) {
+          $(e.target).attr("aria-grabbed", e.type === "focus");
         });
 
-        $(containerElm).on('keydown', function (e) {
+        $(containerElm).on("keydown", function (e) {
           var activeHandle;
 
           Tools.each(handles, function (handle) {
-            if (e.target.id == id + '-' + handle.name) {
+            if (e.target.id == id + "-" + handle.name) {
               activeHandle = handle;
               return false;
             }
@@ -2747,10 +2889,14 @@ define(
         var selectors;
 
         selectors = Tools.map(handles, function (handle) {
-          return '#' + id + '-' + handle.name;
-        }).concat(Tools.map(blockers, function (blocker) {
-          return '#' + id + '-' + blocker;
-        })).join(',');
+          return "#" + id + "-" + handle.name;
+        })
+          .concat(
+            Tools.map(blockers, function (blocker) {
+              return "#" + id + "-" + blocker;
+            }),
+          )
+          .join(",");
 
         if (state) {
           $(selectors, containerElm).show();
@@ -2769,31 +2915,46 @@ define(
             rect.w = 0;
           }
 
-          $('#' + id + '-' + name, containerElm).css({
+          $("#" + id + "-" + name, containerElm).css({
             left: rect.x,
             top: rect.y,
             width: rect.w,
-            height: rect.h
+            height: rect.h,
           });
         }
 
         Tools.each(handles, function (handle) {
-          $('#' + id + '-' + handle.name, containerElm).css({
+          $("#" + id + "-" + handle.name, containerElm).css({
             left: rect.w * handle.xMul + rect.x,
-            top: rect.h * handle.yMul + rect.y
+            top: rect.h * handle.yMul + rect.y,
           });
         });
 
-        updateElementRect('top', { x: viewPortRect.x, y: viewPortRect.y, w: viewPortRect.w, h: rect.y - viewPortRect.y });
-        updateElementRect('right', { x: rect.x + rect.w, y: rect.y, w: viewPortRect.w - rect.x - rect.w + viewPortRect.x, h: rect.h });
-        updateElementRect('bottom', {
+        updateElementRect("top", {
+          x: viewPortRect.x,
+          y: viewPortRect.y,
+          w: viewPortRect.w,
+          h: rect.y - viewPortRect.y,
+        });
+        updateElementRect("right", {
+          x: rect.x + rect.w,
+          y: rect.y,
+          w: viewPortRect.w - rect.x - rect.w + viewPortRect.x,
+          h: rect.h,
+        });
+        updateElementRect("bottom", {
           x: viewPortRect.x,
           y: rect.y + rect.h,
           w: viewPortRect.w,
-          h: viewPortRect.h - rect.y - rect.h + viewPortRect.y
+          h: viewPortRect.h - rect.y - rect.h + viewPortRect.y,
         });
-        updateElementRect('left', { x: viewPortRect.x, y: rect.y, w: rect.x - viewPortRect.x, h: rect.h });
-        updateElementRect('move', rect);
+        updateElementRect("left", {
+          x: viewPortRect.x,
+          y: rect.y,
+          w: rect.x - viewPortRect.x,
+          h: rect.h,
+        });
+        updateElementRect("move", rect);
       }
 
       function setRect(rect) {
@@ -2825,122 +2986,124 @@ define(
 
       render(containerElm);
 
-      instance = Tools.extend({
-        toggleVisibility: toggleVisibility,
-        setClampRect: setClampRect,
-        setRect: setRect,
-        getInnerRect: getInnerRect,
-        setInnerRect: setInnerRect,
-        setViewPortRect: setViewPortRect,
-        destroy: destroy
-      }, Observable);
+      instance = Tools.extend(
+        {
+          toggleVisibility: toggleVisibility,
+          setClampRect: setClampRect,
+          setRect: setRect,
+          getInnerRect: getInnerRect,
+          setInnerRect: setInnerRect,
+          setViewPortRect: setViewPortRect,
+          destroy: destroy,
+        },
+        Observable,
+      );
 
       return instance;
     };
-  }
-);
+  });
 
-/**
- * ImagePanel.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ImagePanel.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.ui.ImagePanel',
-  [
-    'tinymce.core.geom.Rect',
-    'tinymce.core.ui.Control',
-    'tinymce.core.ui.DragHelper',
-    'tinymce.core.util.Promise',
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.imagetools.ui.CropRect'
-  ],
-  function (Rect, Control, DragHelper, Promise, Tools, CropRect) {
+  define("tinymce.plugins.imagetools.ui.ImagePanel", [
+    "tinymce.core.geom.Rect",
+    "tinymce.core.ui.Control",
+    "tinymce.core.ui.DragHelper",
+    "tinymce.core.util.Promise",
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.imagetools.ui.CropRect",
+  ], function (Rect, Control, DragHelper, Promise, Tools, CropRect) {
     function loadImage(image) {
       return new Promise(function (resolve) {
         function loaded() {
-          image.removeEventListener('load', loaded);
+          image.removeEventListener("load", loaded);
           resolve(image);
         }
 
         if (image.complete) {
           resolve(image);
         } else {
-          image.addEventListener('load', loaded);
+          image.addEventListener("load", loaded);
         }
       });
     }
 
     return Control.extend({
       Defaults: {
-        classes: "imagepanel"
+        classes: "imagepanel",
       },
 
       selection: function (rect) {
         if (arguments.length) {
-          this.state.set('rect', rect);
+          this.state.set("rect", rect);
           return this;
         }
 
-        return this.state.get('rect');
+        return this.state.get("rect");
       },
 
       imageSize: function () {
-        var viewRect = this.state.get('viewRect');
+        var viewRect = this.state.get("viewRect");
 
         return {
           w: viewRect.w,
-          h: viewRect.h
+          h: viewRect.h,
         };
       },
 
       toggleCropRect: function (state) {
-        this.state.set('cropEnabled', state);
+        this.state.set("cropEnabled", state);
       },
 
       imageSrc: function (url) {
-        var self = this, img = new Image();
+        var self = this,
+          img = new Image();
 
         img.src = url;
 
         loadImage(img).then(function () {
-          var rect, $img, lastRect = self.state.get('viewRect');
+          var rect,
+            $img,
+            lastRect = self.state.get("viewRect");
 
-          $img = self.$el.find('img');
+          $img = self.$el.find("img");
           if ($img[0]) {
             $img.replaceWith(img);
           } else {
-            var bg = document.createElement('div');
-            bg.className = 'mce-imagepanel-bg';
+            var bg = document.createElement("div");
+            bg.className = "mce-imagepanel-bg";
             self.getEl().appendChild(bg);
             self.getEl().appendChild(img);
           }
 
           rect = { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight };
-          self.state.set('viewRect', rect);
-          self.state.set('rect', Rect.inflate(rect, -20, -20));
+          self.state.set("viewRect", rect);
+          self.state.set("rect", Rect.inflate(rect, -20, -20));
 
           if (!lastRect || lastRect.w != rect.w || lastRect.h != rect.h) {
             self.zoomFit();
           }
 
           self.repaintImage();
-          self.fire('load');
+          self.fire("load");
         });
       },
 
       zoom: function (value) {
         if (arguments.length) {
-          this.state.set('zoom', value);
+          this.state.set("zoom", value);
           return this;
         }
 
-        return this.state.get('zoom');
+        return this.state.get("zoom");
       },
 
       postRender: function () {
@@ -2949,10 +3112,17 @@ define(
       },
 
       zoomFit: function () {
-        var self = this, $img, pw, ph, w, h, zoom, padding;
+        var self = this,
+          $img,
+          pw,
+          ph,
+          w,
+          h,
+          zoom,
+          padding;
 
         padding = 10;
-        $img = self.$el.find('img');
+        $img = self.$el.find("img");
         pw = self.getEl().clientWidth;
         ph = self.getEl().clientHeight;
         w = $img[0].naturalWidth;
@@ -2971,9 +3141,9 @@ define(
 
         elm = this.getEl();
         zoom = this.zoom();
-        rect = this.state.get('rect');
-        $img = this.$el.find('img');
-        $bg = this.$el.find('.mce-imagepanel-bg');
+        rect = this.state.get("rect");
+        $img = this.$el.find("img");
+        $bg = this.$el.find(".mce-imagepanel-bg");
         pw = elm.offsetWidth;
         ph = elm.offsetHeight;
         w = $img[0].naturalWidth * zoom;
@@ -2985,14 +3155,14 @@ define(
           left: x,
           top: y,
           width: w,
-          height: h
+          height: h,
         });
 
         $bg.css({
           left: x,
           top: y,
           width: w,
-          height: h
+          height: h,
         });
 
         if (this.cropRect) {
@@ -3000,21 +3170,21 @@ define(
             x: rect.x * zoom + x,
             y: rect.y * zoom + y,
             w: rect.w * zoom,
-            h: rect.h * zoom
+            h: rect.h * zoom,
           });
 
           this.cropRect.setClampRect({
             x: x,
             y: y,
             w: w,
-            h: h
+            h: h,
           });
 
           this.cropRect.setViewPortRect({
             x: 0,
             y: 0,
             w: pw,
-            h: ph
+            h: ph,
           });
         }
       },
@@ -3025,40 +3195,41 @@ define(
         function setupCropRect(rect) {
           self.cropRect = new CropRect(
             rect,
-            self.state.get('viewRect'),
-            self.state.get('viewRect'),
+            self.state.get("viewRect"),
+            self.state.get("viewRect"),
             self.getEl(),
             function () {
-              self.fire('crop');
-            }
+              self.fire("crop");
+            },
           );
 
-          self.cropRect.on('updateRect', function (e) {
-            var rect = e.rect, zoom = self.zoom();
+          self.cropRect.on("updateRect", function (e) {
+            var rect = e.rect,
+              zoom = self.zoom();
 
             rect = {
               x: Math.round(rect.x / zoom),
               y: Math.round(rect.y / zoom),
               w: Math.round(rect.w / zoom),
-              h: Math.round(rect.h / zoom)
+              h: Math.round(rect.h / zoom),
             };
 
-            self.state.set('rect', rect);
+            self.state.set("rect", rect);
           });
 
-          self.on('remove', self.cropRect.destroy);
+          self.on("remove", self.cropRect.destroy);
         }
 
-        self.state.on('change:cropEnabled', function (e) {
+        self.state.on("change:cropEnabled", function (e) {
           self.cropRect.toggleVisibility(e.value);
           self.repaintImage();
         });
 
-        self.state.on('change:zoom', function () {
+        self.state.on("change:zoom", function () {
           self.repaintImage();
         });
 
-        self.state.on('change:rect', function (e) {
+        self.state.on("change:rect", function (e) {
           var rect = e.value;
 
           if (!self.cropRect) {
@@ -3067,28 +3238,24 @@ define(
 
           self.cropRect.setRect(rect);
         });
-      }
+      },
     });
-  }
-);
+  });
 
-/**
- * UndoStack.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * UndoStack.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.core.UndoStack',
-  [
-  ],
-  function () {
+  define("tinymce.plugins.imagetools.core.UndoStack", [], function () {
     return function () {
-      var data = [], index = -1;
+      var data = [],
+        index = -1;
 
       function add(state) {
         var removed;
@@ -3098,7 +3265,7 @@ define(
 
         return {
           state: state,
-          removed: removed
+          removed: removed,
         };
       }
 
@@ -3128,44 +3295,48 @@ define(
         undo: undo,
         redo: redo,
         canUndo: canUndo,
-        canRedo: canRedo
+        canRedo: canRedo,
       };
     };
-  }
-);
+  });
 
-/**
- * Dialog.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Dialog.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.ui.Dialog',
-  [
-    'ephox.imagetools.api.BlobConversions',
-    'ephox.imagetools.api.ImageTransformations',
-    'tinymce.core.dom.DOMUtils',
-    'tinymce.core.ui.Container',
-    'tinymce.core.ui.Factory',
-    'tinymce.core.ui.Form',
-    'tinymce.core.util.Promise',
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.imagetools.ui.ImagePanel',
-    'tinymce.plugins.imagetools.core.UndoStack'
-  ],
-  function (
-    BlobConversions, ImageTransformations, DOMUtils, Container, Factory, Form, Promise,
-    Tools, ImagePanel, UndoStack
+  define("tinymce.plugins.imagetools.ui.Dialog", [
+    "ephox.imagetools.api.BlobConversions",
+    "ephox.imagetools.api.ImageTransformations",
+    "tinymce.core.dom.DOMUtils",
+    "tinymce.core.ui.Container",
+    "tinymce.core.ui.Factory",
+    "tinymce.core.ui.Form",
+    "tinymce.core.util.Promise",
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.imagetools.ui.ImagePanel",
+    "tinymce.plugins.imagetools.core.UndoStack",
+  ], function (
+    BlobConversions,
+    ImageTransformations,
+    DOMUtils,
+    Container,
+    Factory,
+    Form,
+    Promise,
+    Tools,
+    ImagePanel,
+    UndoStack,
   ) {
     function createState(blob) {
       return {
         blob: blob,
-        url: URL.createObjectURL(blob)
+        url: URL.createObjectURL(blob),
       };
     }
 
@@ -3180,23 +3351,52 @@ define(
     }
 
     function open(currentState, resolve, reject) {
-      var win, undoStack = new UndoStack(), mainPanel, filtersPanel, tempState,
-        cropPanel, resizePanel, flipRotatePanel, imagePanel, sidePanel, mainViewContainer,
-        invertPanel, brightnessPanel, huePanel, saturatePanel, contrastPanel, grayscalePanel,
-        sepiaPanel, colorizePanel, sharpenPanel, embossPanel, gammaPanel, exposurePanel, panels,
-        width, height, ratioW, ratioH;
+      var win,
+        undoStack = new UndoStack(),
+        mainPanel,
+        filtersPanel,
+        tempState,
+        cropPanel,
+        resizePanel,
+        flipRotatePanel,
+        imagePanel,
+        sidePanel,
+        mainViewContainer,
+        invertPanel,
+        brightnessPanel,
+        huePanel,
+        saturatePanel,
+        contrastPanel,
+        grayscalePanel,
+        sepiaPanel,
+        colorizePanel,
+        sharpenPanel,
+        embossPanel,
+        gammaPanel,
+        exposurePanel,
+        panels,
+        width,
+        height,
+        ratioW,
+        ratioH;
 
       function recalcSize(e) {
         var widthCtrl, heightCtrl, newWidth, newHeight;
 
-        widthCtrl = win.find('#w')[0];
-        heightCtrl = win.find('#h')[0];
+        widthCtrl = win.find("#w")[0];
+        heightCtrl = win.find("#h")[0];
 
         newWidth = parseInt(widthCtrl.value(), 10);
         newHeight = parseInt(heightCtrl.value(), 10);
 
-        if (win.find('#constrain')[0].checked() && width && height && newWidth && newHeight) {
-          if (e.control.settings.name == 'w') {
+        if (
+          win.find("#constrain")[0].checked() &&
+          width &&
+          height &&
+          newWidth &&
+          newHeight
+        ) {
+          if (e.control.settings.name == "w") {
             newHeight = Math.round(newWidth * ratioW);
             heightCtrl.value(newHeight);
           } else {
@@ -3210,18 +3410,18 @@ define(
       }
 
       function floatToPercent(value) {
-        return Math.round(value * 100) + '%';
+        return Math.round(value * 100) + "%";
       }
 
       function updateButtonUndoStates() {
-        win.find('#undo').disabled(!undoStack.canUndo());
-        win.find('#redo').disabled(!undoStack.canRedo());
-        win.statusbar.find('#save').disabled(!undoStack.canUndo());
+        win.find("#undo").disabled(!undoStack.canUndo());
+        win.find("#redo").disabled(!undoStack.canRedo());
+        win.statusbar.find("#save").disabled(!undoStack.canUndo());
       }
 
       function disableUndoRedo() {
-        win.find('#undo').disabled(true);
-        win.find('#redo').disabled(true);
+        win.find("#undo").disabled(true);
+        win.find("#redo").disabled(true);
       }
 
       function displayState(state) {
@@ -3260,15 +3460,16 @@ define(
       function crop() {
         var rect = imagePanel.selection();
 
-        BlobConversions.blobToImageResult(currentState.blob).
-          then(function (ir) {
-            ImageTransformations.crop(ir, rect.x, rect.y, rect.w, rect.h).
-              then(imageResultToBlob).
-              then(function (blob) {
+        BlobConversions.blobToImageResult(currentState.blob).then(
+          function (ir) {
+            ImageTransformations.crop(ir, rect.x, rect.y, rect.w, rect.h)
+              .then(imageResultToBlob)
+              .then(function (blob) {
                 addBlobState(blob);
                 cancel();
               });
-          });
+          },
+        );
       }
 
       function tempAction(fn) {
@@ -3277,10 +3478,11 @@ define(
         return function () {
           var state = tempState || currentState;
 
-          BlobConversions.blobToImageResult(state.blob).
-            then(function (ir) {
-              fn.apply(this, [ir].concat(args)).then(imageResultToBlob).then(addTempState);
-            });
+          BlobConversions.blobToImageResult(state.blob).then(function (ir) {
+            fn.apply(this, [ir].concat(args))
+              .then(imageResultToBlob)
+              .then(addTempState);
+          });
         };
       }
 
@@ -3288,10 +3490,13 @@ define(
         var args = [].slice.call(arguments, 1);
 
         return function () {
-          BlobConversions.blobToImageResult(currentState.blob).
-            then(function (ir) {
-              fn.apply(this, [ir].concat(args)).then(imageResultToBlob).then(addBlobState);
-            });
+          BlobConversions.blobToImageResult(currentState.blob).then(
+            function (ir) {
+              fn.apply(this, [ir].concat(args))
+                .then(imageResultToBlob)
+                .then(addBlobState);
+            },
+          );
         };
       }
 
@@ -3348,21 +3553,21 @@ define(
 
       function createPanel(items) {
         return new Form({
-          layout: 'flex',
-          direction: 'row',
+          layout: "flex",
+          direction: "row",
           labelGap: 5,
-          border: '0 0 1 0',
-          align: 'center',
-          pack: 'center',
-          padding: '0 10 0 10',
+          border: "0 0 1 0",
+          align: "center",
+          pack: "center",
+          padding: "0 10 0 10",
           spacing: 5,
           flex: 0,
           minHeight: 60,
           defaults: {
-            classes: 'imagetool',
-            type: 'button'
+            classes: "imagetool",
+            type: "button",
           },
-          items: items
+          items: items,
         });
       }
 
@@ -3372,35 +3577,37 @@ define(
 
       function createFilterPanel(title, filter) {
         return createPanel([
-          { text: 'Back', onclick: cancel },
-          { type: 'spacer', flex: 1 },
-          { text: 'Apply', subtype: 'primary', onclick: applyTempState }
-        ]).hide().on('show', function () {
-          disableUndoRedo();
+          { text: "Back", onclick: cancel },
+          { type: "spacer", flex: 1 },
+          { text: "Apply", subtype: "primary", onclick: applyTempState },
+        ])
+          .hide()
+          .on("show", function () {
+            disableUndoRedo();
 
-          BlobConversions.blobToImageResult(currentState.blob).
-            then(function (ir) {
-              return filter(ir);
-            }).
-            then(imageResultToBlob).
-            then(function (blob) {
-              var newTempState = createState(blob);
+            BlobConversions.blobToImageResult(currentState.blob)
+              .then(function (ir) {
+                return filter(ir);
+              })
+              .then(imageResultToBlob)
+              .then(function (blob) {
+                var newTempState = createState(blob);
 
-              displayState(newTempState);
-              destroyState(tempState);
-              tempState = newTempState;
-            });
-        });
+                displayState(newTempState);
+                destroyState(tempState);
+                tempState = newTempState;
+              });
+          });
       }
 
       function createVariableFilterPanel(title, filter, value, min, max) {
         function update(value) {
-          BlobConversions.blobToImageResult(currentState.blob).
-            then(function (ir) {
+          BlobConversions.blobToImageResult(currentState.blob)
+            .then(function (ir) {
               return filter(ir, value);
-            }).
-            then(imageResultToBlob).
-            then(function (blob) {
+            })
+            .then(imageResultToBlob)
+            .then(function (blob) {
               var newTempState = createState(blob);
               displayState(newTempState);
               destroyState(tempState);
@@ -3409,10 +3616,10 @@ define(
         }
 
         return createPanel([
-          { text: 'Back', onclick: cancel },
-          { type: 'spacer', flex: 1 },
+          { text: "Back", onclick: cancel },
+          { type: "spacer", flex: 1 },
           {
-            type: 'slider',
+            type: "slider",
             flex: 1,
             ondragend: function (e) {
               update(e.value);
@@ -3420,67 +3627,92 @@ define(
             minValue: min,
             maxValue: max,
             value: value,
-            previewFilter: floatToPercent
+            previewFilter: floatToPercent,
           },
-          { type: 'spacer', flex: 1 },
-          { text: 'Apply', subtype: 'primary', onclick: applyTempState }
-        ]).hide().on('show', function () {
-          this.find('slider').value(value);
-          disableUndoRedo();
-        });
+          { type: "spacer", flex: 1 },
+          { text: "Apply", subtype: "primary", onclick: applyTempState },
+        ])
+          .hide()
+          .on("show", function () {
+            this.find("slider").value(value);
+            disableUndoRedo();
+          });
       }
 
       function createRgbFilterPanel(title, filter) {
         function update() {
           var r, g, b;
 
-          r = win.find('#r')[0].value();
-          g = win.find('#g')[0].value();
-          b = win.find('#b')[0].value();
+          r = win.find("#r")[0].value();
+          g = win.find("#g")[0].value();
+          b = win.find("#b")[0].value();
 
-          BlobConversions.blobToImageResult(currentState.blob).
-          then(function (ir) {
-            return filter(ir, r, g, b);
-          }).
-          then(imageResultToBlob).
-          then(function (blob) {
-            var newTempState = createState(blob);
-            displayState(newTempState);
-            destroyState(tempState);
-            tempState = newTempState;
-          });
+          BlobConversions.blobToImageResult(currentState.blob)
+            .then(function (ir) {
+              return filter(ir, r, g, b);
+            })
+            .then(imageResultToBlob)
+            .then(function (blob) {
+              var newTempState = createState(blob);
+              displayState(newTempState);
+              destroyState(tempState);
+              tempState = newTempState;
+            });
         }
 
         return createPanel([
-          { text: 'Back', onclick: cancel },
-          { type: 'spacer', flex: 1 },
+          { text: "Back", onclick: cancel },
+          { type: "spacer", flex: 1 },
           {
-            type: 'slider', label: 'R', name: 'r', minValue: 0,
-            value: 1, maxValue: 2, ondragend: update, previewFilter: floatToPercent
+            type: "slider",
+            label: "R",
+            name: "r",
+            minValue: 0,
+            value: 1,
+            maxValue: 2,
+            ondragend: update,
+            previewFilter: floatToPercent,
           },
           {
-            type: 'slider', label: 'G', name: 'g', minValue: 0,
-            value: 1, maxValue: 2, ondragend: update, previewFilter: floatToPercent
+            type: "slider",
+            label: "G",
+            name: "g",
+            minValue: 0,
+            value: 1,
+            maxValue: 2,
+            ondragend: update,
+            previewFilter: floatToPercent,
           },
           {
-            type: 'slider', label: 'B', name: 'b', minValue: 0,
-            value: 1, maxValue: 2, ondragend: update, previewFilter: floatToPercent
+            type: "slider",
+            label: "B",
+            name: "b",
+            minValue: 0,
+            value: 1,
+            maxValue: 2,
+            ondragend: update,
+            previewFilter: floatToPercent,
           },
-          { type: 'spacer', flex: 1 },
-          { text: 'Apply', subtype: 'primary', onclick: applyTempState }
-        ]).hide().on('show', function () {
-          win.find('#r,#g,#b').value(1);
-          disableUndoRedo();
-        });
+          { type: "spacer", flex: 1 },
+          { text: "Apply", subtype: "primary", onclick: applyTempState },
+        ])
+          .hide()
+          .on("show", function () {
+            win.find("#r,#g,#b").value(1);
+            disableUndoRedo();
+          });
       }
 
       cropPanel = createPanel([
-        { text: 'Back', onclick: cancel },
-        { type: 'spacer', flex: 1 },
-        { text: 'Apply', subtype: 'primary', onclick: crop }
-      ]).hide().on('show hide', function (e) {
-        imagePanel.toggleCropRect(e.type == 'show');
-      }).on('show', disableUndoRedo);
+        { text: "Back", onclick: cancel },
+        { type: "spacer", flex: 1 },
+        { text: "Apply", subtype: "primary", onclick: crop },
+      ])
+        .hide()
+        .on("show hide", function (e) {
+          imagePanel.toggleCropRect(e.type == "show");
+        })
+        .on("show", disableUndoRedo);
 
       function toggleConstrain(e) {
         if (e.control.value() === true) {
@@ -3490,98 +3722,246 @@ define(
       }
 
       resizePanel = createPanel([
-        { text: 'Back', onclick: cancel },
-        { type: 'spacer', flex: 1 },
-        { type: 'textbox', name: 'w', label: 'Width', size: 4, onkeyup: recalcSize },
-        { type: 'textbox', name: 'h', label: 'Height', size: 4, onkeyup: recalcSize },
-        { type: 'checkbox', name: 'constrain', text: 'Constrain proportions', checked: true, onchange: toggleConstrain },
-        { type: 'spacer', flex: 1 },
-        { text: 'Apply', subtype: 'primary', onclick: 'submit' }
-      ]).hide().on('submit', function (e) {
-        var width = parseInt(win.find('#w').value(), 10),
-          height = parseInt(win.find('#h').value(), 10);
+        { text: "Back", onclick: cancel },
+        { type: "spacer", flex: 1 },
+        {
+          type: "textbox",
+          name: "w",
+          label: "Width",
+          size: 4,
+          onkeyup: recalcSize,
+        },
+        {
+          type: "textbox",
+          name: "h",
+          label: "Height",
+          size: 4,
+          onkeyup: recalcSize,
+        },
+        {
+          type: "checkbox",
+          name: "constrain",
+          text: "Constrain proportions",
+          checked: true,
+          onchange: toggleConstrain,
+        },
+        { type: "spacer", flex: 1 },
+        { text: "Apply", subtype: "primary", onclick: "submit" },
+      ])
+        .hide()
+        .on("submit", function (e) {
+          var width = parseInt(win.find("#w").value(), 10),
+            height = parseInt(win.find("#h").value(), 10);
 
-        e.preventDefault();
+          e.preventDefault();
 
-        action(ImageTransformations.resize, width, height)();
-        cancel();
-      }).on('show', disableUndoRedo);
+          action(ImageTransformations.resize, width, height)();
+          cancel();
+        })
+        .on("show", disableUndoRedo);
 
       flipRotatePanel = createPanel([
-        { text: 'Back', onclick: cancel },
-        { type: 'spacer', flex: 1 },
-        { icon: 'fliph', tooltip: 'Flip horizontally', onclick: tempAction(ImageTransformations.flip, 'h') },
-        { icon: 'flipv', tooltip: 'Flip vertically', onclick: tempAction(ImageTransformations.flip, 'v') },
-        { icon: 'rotateleft', tooltip: 'Rotate counterclockwise', onclick: tempAction(ImageTransformations.rotate, -90) },
-        { icon: 'rotateright', tooltip: 'Rotate clockwise', onclick: tempAction(ImageTransformations.rotate, 90) },
-        { type: 'spacer', flex: 1 },
-        { text: 'Apply', subtype: 'primary', onclick: applyTempState }
-      ]).hide().on('show', disableUndoRedo);
+        { text: "Back", onclick: cancel },
+        { type: "spacer", flex: 1 },
+        {
+          icon: "fliph",
+          tooltip: "Flip horizontally",
+          onclick: tempAction(ImageTransformations.flip, "h"),
+        },
+        {
+          icon: "flipv",
+          tooltip: "Flip vertically",
+          onclick: tempAction(ImageTransformations.flip, "v"),
+        },
+        {
+          icon: "rotateleft",
+          tooltip: "Rotate counterclockwise",
+          onclick: tempAction(ImageTransformations.rotate, -90),
+        },
+        {
+          icon: "rotateright",
+          tooltip: "Rotate clockwise",
+          onclick: tempAction(ImageTransformations.rotate, 90),
+        },
+        { type: "spacer", flex: 1 },
+        { text: "Apply", subtype: "primary", onclick: applyTempState },
+      ])
+        .hide()
+        .on("show", disableUndoRedo);
 
       invertPanel = createFilterPanel("Invert", ImageTransformations.invert);
       sharpenPanel = createFilterPanel("Sharpen", ImageTransformations.sharpen);
       embossPanel = createFilterPanel("Emboss", ImageTransformations.emboss);
 
-      brightnessPanel = createVariableFilterPanel("Brightness", ImageTransformations.brightness, 0, -1, 1);
-      huePanel = createVariableFilterPanel("Hue", ImageTransformations.hue, 180, 0, 360);
-      saturatePanel = createVariableFilterPanel("Saturate", ImageTransformations.saturate, 0, -1, 1);
-      contrastPanel = createVariableFilterPanel("Contrast", ImageTransformations.contrast, 0, -1, 1);
-      grayscalePanel = createVariableFilterPanel("Grayscale", ImageTransformations.grayscale, 0, 0, 1);
-      sepiaPanel = createVariableFilterPanel("Sepia", ImageTransformations.sepia, 0, 0, 1);
-      colorizePanel = createRgbFilterPanel("Colorize", ImageTransformations.colorize);
-      gammaPanel = createVariableFilterPanel("Gamma", ImageTransformations.gamma, 0, -1, 1);
-      exposurePanel = createVariableFilterPanel("Exposure", ImageTransformations.exposure, 1, 0, 2);
+      brightnessPanel = createVariableFilterPanel(
+        "Brightness",
+        ImageTransformations.brightness,
+        0,
+        -1,
+        1,
+      );
+      huePanel = createVariableFilterPanel(
+        "Hue",
+        ImageTransformations.hue,
+        180,
+        0,
+        360,
+      );
+      saturatePanel = createVariableFilterPanel(
+        "Saturate",
+        ImageTransformations.saturate,
+        0,
+        -1,
+        1,
+      );
+      contrastPanel = createVariableFilterPanel(
+        "Contrast",
+        ImageTransformations.contrast,
+        0,
+        -1,
+        1,
+      );
+      grayscalePanel = createVariableFilterPanel(
+        "Grayscale",
+        ImageTransformations.grayscale,
+        0,
+        0,
+        1,
+      );
+      sepiaPanel = createVariableFilterPanel(
+        "Sepia",
+        ImageTransformations.sepia,
+        0,
+        0,
+        1,
+      );
+      colorizePanel = createRgbFilterPanel(
+        "Colorize",
+        ImageTransformations.colorize,
+      );
+      gammaPanel = createVariableFilterPanel(
+        "Gamma",
+        ImageTransformations.gamma,
+        0,
+        -1,
+        1,
+      );
+      exposurePanel = createVariableFilterPanel(
+        "Exposure",
+        ImageTransformations.exposure,
+        1,
+        0,
+        2,
+      );
 
       filtersPanel = createPanel([
-        { text: 'Back', onclick: cancel },
-        { type: 'spacer', flex: 1 },
-        { text: 'hue', icon: 'hue', onclick: switchPanel(huePanel) },
-        { text: 'saturate', icon: 'saturate', onclick: switchPanel(saturatePanel) },
-        { text: 'sepia', icon: 'sepia', onclick: switchPanel(sepiaPanel) },
-        { text: 'emboss', icon: 'emboss', onclick: switchPanel(embossPanel) },
-        { text: 'exposure', icon: 'exposure', onclick: switchPanel(exposurePanel) },
-        { type: 'spacer', flex: 1 }
+        { text: "Back", onclick: cancel },
+        { type: "spacer", flex: 1 },
+        { text: "hue", icon: "hue", onclick: switchPanel(huePanel) },
+        {
+          text: "saturate",
+          icon: "saturate",
+          onclick: switchPanel(saturatePanel),
+        },
+        { text: "sepia", icon: "sepia", onclick: switchPanel(sepiaPanel) },
+        { text: "emboss", icon: "emboss", onclick: switchPanel(embossPanel) },
+        {
+          text: "exposure",
+          icon: "exposure",
+          onclick: switchPanel(exposurePanel),
+        },
+        { type: "spacer", flex: 1 },
       ]).hide();
 
       mainPanel = createPanel([
-        { tooltip: 'Crop', icon: 'crop', onclick: switchPanel(cropPanel) },
-        { tooltip: 'Resize', icon: 'resize2', onclick: switchPanel(resizePanel) },
-        { tooltip: 'Orientation', icon: 'orientation', onclick: switchPanel(flipRotatePanel) },
-        { tooltip: 'Brightness', icon: 'sun', onclick: switchPanel(brightnessPanel) },
-        { tooltip: 'Sharpen', icon: 'sharpen', onclick: switchPanel(sharpenPanel) },
-        { tooltip: 'Contrast', icon: 'contrast', onclick: switchPanel(contrastPanel) },
-        { tooltip: 'Color levels', icon: 'drop', onclick: switchPanel(colorizePanel) },
-        { tooltip: 'Gamma', icon: 'gamma', onclick: switchPanel(gammaPanel) },
-        { tooltip: 'Invert', icon: 'invert', onclick: switchPanel(invertPanel) }
+        { tooltip: "Crop", icon: "crop", onclick: switchPanel(cropPanel) },
+        {
+          tooltip: "Resize",
+          icon: "resize2",
+          onclick: switchPanel(resizePanel),
+        },
+        {
+          tooltip: "Orientation",
+          icon: "orientation",
+          onclick: switchPanel(flipRotatePanel),
+        },
+        {
+          tooltip: "Brightness",
+          icon: "sun",
+          onclick: switchPanel(brightnessPanel),
+        },
+        {
+          tooltip: "Sharpen",
+          icon: "sharpen",
+          onclick: switchPanel(sharpenPanel),
+        },
+        {
+          tooltip: "Contrast",
+          icon: "contrast",
+          onclick: switchPanel(contrastPanel),
+        },
+        {
+          tooltip: "Color levels",
+          icon: "drop",
+          onclick: switchPanel(colorizePanel),
+        },
+        { tooltip: "Gamma", icon: "gamma", onclick: switchPanel(gammaPanel) },
+        {
+          tooltip: "Invert",
+          icon: "invert",
+          onclick: switchPanel(invertPanel),
+        },
         //{text: 'More', onclick: switchPanel(filtersPanel)}
       ]);
 
       imagePanel = new ImagePanel({
         flex: 1,
-        imageSrc: currentState.url
+        imageSrc: currentState.url,
       });
 
       sidePanel = new Container({
-        layout: 'flex',
-        direction: 'column',
-        border: '0 1 0 0',
+        layout: "flex",
+        direction: "column",
+        border: "0 1 0 0",
         padding: 5,
         spacing: 5,
         items: [
-          { type: 'button', icon: 'undo', tooltip: 'Undo', name: 'undo', onclick: undo },
-          { type: 'button', icon: 'redo', tooltip: 'Redo', name: 'redo', onclick: redo },
-          { type: 'button', icon: 'zoomin', tooltip: 'Zoom in', onclick: zoomIn },
-          { type: 'button', icon: 'zoomout', tooltip: 'Zoom out', onclick: zoomOut }
-        ]
+          {
+            type: "button",
+            icon: "undo",
+            tooltip: "Undo",
+            name: "undo",
+            onclick: undo,
+          },
+          {
+            type: "button",
+            icon: "redo",
+            tooltip: "Redo",
+            name: "redo",
+            onclick: redo,
+          },
+          {
+            type: "button",
+            icon: "zoomin",
+            tooltip: "Zoom in",
+            onclick: zoomIn,
+          },
+          {
+            type: "button",
+            icon: "zoomout",
+            tooltip: "Zoom out",
+            onclick: zoomOut,
+          },
+        ],
       });
 
       mainViewContainer = new Container({
-        type: 'container',
-        layout: 'flex',
-        direction: 'row',
-        align: 'stretch',
+        type: "container",
+        layout: "flex",
+        direction: "row",
+        align: "stretch",
         flex: 1,
-        items: [sidePanel, imagePanel]
+        items: [sidePanel, imagePanel],
       });
 
       panels = [
@@ -3601,26 +3981,26 @@ define(
         sharpenPanel,
         embossPanel,
         gammaPanel,
-        exposurePanel
+        exposurePanel,
       ];
 
-      win = Factory.create('window', {
-        layout: 'flex',
-        direction: 'column',
-        align: 'stretch',
+      win = Factory.create("window", {
+        layout: "flex",
+        direction: "column",
+        align: "stretch",
         minWidth: Math.min(DOMUtils.DOM.getViewPort().w, 800),
         minHeight: Math.min(DOMUtils.DOM.getViewPort().h, 650),
-        title: 'Edit image',
+        title: "Edit image",
         items: panels.concat([mainViewContainer]),
         buttons: [
-          { text: 'Save', name: 'save', subtype: 'primary', onclick: save },
-          { text: 'Cancel', onclick: 'close' }
-        ]
+          { text: "Save", name: "save", subtype: "primary", onclick: save },
+          { text: "Cancel", onclick: "close" },
+        ],
       });
 
       win.renderTo(document.body).reflow();
 
-      win.on('close', function () {
+      win.on("close", function () {
         reject();
         destroyStates(undoStack.data);
         undoStack = null;
@@ -3630,17 +4010,17 @@ define(
       undoStack.add(currentState);
       updateButtonUndoStates();
 
-      imagePanel.on('load', function () {
+      imagePanel.on("load", function () {
         width = imagePanel.imageSize().w;
         height = imagePanel.imageSize().h;
         ratioW = height / width;
         ratioH = width / height;
 
-        win.find('#w').value(width);
-        win.find('#h').value(height);
+        win.find("#w").value(width);
+        win.find("#h").value(height);
       });
 
-      imagePanel.on('crop', crop);
+      imagePanel.on("crop", crop);
     }
 
     function edit(imageResult) {
@@ -3654,42 +4034,49 @@ define(
     //edit('img/dogleft.jpg');
 
     return {
-      edit: edit
+      edit: edit,
     };
-  }
-);
+  });
 
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.imagetools.Plugin',
-  [
-    'ephox.imagetools.api.BlobConversions',
-    'ephox.imagetools.api.ImageTransformations',
-    'tinymce.core.Env',
-    'tinymce.core.PluginManager',
-    'tinymce.core.util.Delay',
-    'tinymce.core.util.Promise',
-    'tinymce.core.util.Tools',
-    'tinymce.core.util.URI',
-    'tinymce.plugins.imagetools.core.ImageSize',
-    'tinymce.plugins.imagetools.core.Proxy',
-    'tinymce.plugins.imagetools.ui.Dialog'
-  ],
-  function (
-    BlobConversions, ImageTransformations, Env, PluginManager, Delay, Promise, Tools,
-    URI, ImageSize, Proxy, Dialog
+  define("tinymce.plugins.imagetools.Plugin", [
+    "ephox.imagetools.api.BlobConversions",
+    "ephox.imagetools.api.ImageTransformations",
+    "tinymce.core.Env",
+    "tinymce.core.PluginManager",
+    "tinymce.core.util.Delay",
+    "tinymce.core.util.Promise",
+    "tinymce.core.util.Tools",
+    "tinymce.core.util.URI",
+    "tinymce.plugins.imagetools.core.ImageSize",
+    "tinymce.plugins.imagetools.core.Proxy",
+    "tinymce.plugins.imagetools.ui.Dialog",
+  ], function (
+    BlobConversions,
+    ImageTransformations,
+    Env,
+    PluginManager,
+    Delay,
+    Promise,
+    Tools,
+    URI,
+    ImageSize,
+    Proxy,
+    Dialog,
   ) {
     var plugin = function (editor) {
-      var count = 0, imageUploadTimer, lastSelectedImage;
+      var count = 0,
+        imageUploadTimer,
+        lastSelectedImage;
 
       if (!Env.fileApi) {
         return;
@@ -3698,7 +4085,7 @@ define(
       function displayError(error) {
         editor.notificationManager.open({
           text: error,
-          type: 'error'
+          type: "error",
         });
       }
 
@@ -3715,17 +4102,26 @@ define(
       }
 
       function createId() {
-        return 'imagetools' + count++;
+        return "imagetools" + count++;
       }
 
       function isLocalImage(img) {
         var url = img.src;
 
-        return url.indexOf('data:') === 0 || url.indexOf('blob:') === 0 || new URI(url).host === editor.documentBaseURI.host;
+        return (
+          url.indexOf("data:") === 0 ||
+          url.indexOf("blob:") === 0 ||
+          new URI(url).host === editor.documentBaseURI.host
+        );
       }
 
       function isCorsImage(img) {
-        return Tools.inArray(editor.settings.imagetools_cors_hosts, new URI(img.src).host) !== -1;
+        return (
+          Tools.inArray(
+            editor.settings.imagetools_cors_hosts,
+            new URI(img.src).host,
+          ) !== -1
+        );
       }
 
       function getApiKey() {
@@ -3733,7 +4129,8 @@ define(
       }
 
       function imageToBlob(img) {
-        var src = img.src, apiKey;
+        var src = img.src,
+          apiKey;
 
         if (isCorsImage(img)) {
           return Proxy.getUrl(img.src, null);
@@ -3741,7 +4138,10 @@ define(
 
         if (!isLocalImage(img)) {
           src = editor.settings.imagetools_proxy;
-          src += (src.indexOf('?') === -1 ? '?' : '&') + 'url=' + encodeURIComponent(img.src);
+          src +=
+            (src.indexOf("?") === -1 ? "?" : "&") +
+            "url=" +
+            encodeURIComponent(img.src);
           apiKey = getApiKey();
           return Proxy.getUrl(src, apiKey);
         }
@@ -3751,7 +4151,9 @@ define(
 
       function findSelectedBlob() {
         var blobInfo;
-        blobInfo = editor.editorUpload.blobCache.getByUri(getSelectedImage().src);
+        blobInfo = editor.editorUpload.blobCache.getByUri(
+          getSelectedImage().src,
+        );
         if (blobInfo) {
           return Promise.resolve(blobInfo.blob());
         }
@@ -3760,9 +4162,13 @@ define(
       }
 
       function startTimedUpload() {
-        imageUploadTimer = Delay.setEditorTimeout(editor, function () {
-          editor.editorUpload.uploadImagesAuto();
-        }, editor.settings.images_upload_timeout || 30000);
+        imageUploadTimer = Delay.setEditorTimeout(
+          editor,
+          function () {
+            editor.editorUpload.uploadImagesAuto();
+          },
+          editor.settings.images_upload_timeout || 30000,
+        );
       }
 
       function cancelTimedUpload() {
@@ -3792,14 +4198,14 @@ define(
             blob: blob,
             base64: ir.toBase64(),
             uri: uri,
-            name: name
+            name: name,
           });
 
           blobCache.add(blobInfo);
 
           editor.undoManager.transact(function () {
             function imageLoadedHandler() {
-              editor.$(selectedImage).off('load', imageLoadedHandler);
+              editor.$(selectedImage).off("load", imageLoadedHandler);
               editor.nodeChanged();
 
               if (uploadImmediately) {
@@ -3810,11 +4216,14 @@ define(
               }
             }
 
-            editor.$(selectedImage).on('load', imageLoadedHandler);
+            editor.$(selectedImage).on("load", imageLoadedHandler);
 
-            editor.$(selectedImage).attr({
-              src: blobInfo.blobUri()
-            }).removeAttr('data-mce-src');
+            editor
+              .$(selectedImage)
+              .attr({
+                src: blobInfo.blobUri(),
+              })
+              .removeAttr("data-mce-src");
           });
 
           return blobInfo;
@@ -3823,11 +4232,12 @@ define(
 
       function selectedImageOperation(fn) {
         return function () {
-          return editor._scanForImages().
-            then(findSelectedBlob).
-            then(BlobConversions.blobToImageResult).
-            then(fn).
-            then(updateSelectedImage, displayError);
+          return editor
+            ._scanForImages()
+            .then(findSelectedBlob)
+            .then(BlobConversions.blobToImageResult)
+            .then(fn)
+            .then(updateSelectedImage, displayError);
         };
       }
 
@@ -3839,7 +4249,7 @@ define(
             if (size) {
               ImageSize.setImageSize(getSelectedImage(), {
                 w: size.h,
-                h: size.w
+                h: size.w,
               });
             }
 
@@ -3857,71 +4267,75 @@ define(
       }
 
       function editImageDialog() {
-        var img = getSelectedImage(), originalSize = ImageSize.getNaturalImageSize(img);
+        var img = getSelectedImage(),
+          originalSize = ImageSize.getNaturalImageSize(img);
 
         var handleDialogBlob = function (blob) {
           return new Promise(function (resolve) {
-            BlobConversions.blobToImage(blob).
-              then(function (newImage) {
-                var newSize = ImageSize.getNaturalImageSize(newImage);
+            BlobConversions.blobToImage(blob).then(function (newImage) {
+              var newSize = ImageSize.getNaturalImageSize(newImage);
 
-                if (originalSize.w != newSize.w || originalSize.h != newSize.h) {
-                  if (ImageSize.getImageSize(img)) {
-                    ImageSize.setImageSize(img, newSize);
-                  }
+              if (originalSize.w != newSize.w || originalSize.h != newSize.h) {
+                if (ImageSize.getImageSize(img)) {
+                  ImageSize.setImageSize(img, newSize);
                 }
+              }
 
-                URL.revokeObjectURL(newImage.src);
-                resolve(blob);
-              });
+              URL.revokeObjectURL(newImage.src);
+              resolve(blob);
+            });
           });
         };
 
         var openDialog = function (imageResult) {
-          return Dialog.edit(imageResult).then(handleDialogBlob).
-            then(BlobConversions.blobToImageResult).
-            then(function (imageResult) {
-              return updateSelectedImage(imageResult, true);
-            }, function () {
-              // Close dialog
-            });
+          return Dialog.edit(imageResult)
+            .then(handleDialogBlob)
+            .then(BlobConversions.blobToImageResult)
+            .then(
+              function (imageResult) {
+                return updateSelectedImage(imageResult, true);
+              },
+              function () {
+                // Close dialog
+              },
+            );
         };
 
-        findSelectedBlob().
-          then(BlobConversions.blobToImageResult).
-          then(openDialog, displayError);
+        findSelectedBlob()
+          .then(BlobConversions.blobToImageResult)
+          .then(openDialog, displayError);
       }
 
       function addButtons() {
-        editor.addButton('rotateleft', {
-          title: 'Rotate counterclockwise',
-          cmd: 'mceImageRotateLeft'
+        editor.addButton("rotateleft", {
+          title: "Rotate counterclockwise",
+          cmd: "mceImageRotateLeft",
         });
 
-        editor.addButton('rotateright', {
-          title: 'Rotate clockwise',
-          cmd: 'mceImageRotateRight'
+        editor.addButton("rotateright", {
+          title: "Rotate clockwise",
+          cmd: "mceImageRotateRight",
         });
 
-        editor.addButton('flipv', {
-          title: 'Flip vertically',
-          cmd: 'mceImageFlipVertical'
+        editor.addButton("flipv", {
+          title: "Flip vertically",
+          cmd: "mceImageFlipVertical",
         });
 
-        editor.addButton('fliph', {
-          title: 'Flip horizontally',
-          cmd: 'mceImageFlipHorizontal'
+        editor.addButton("fliph", {
+          title: "Flip horizontally",
+          cmd: "mceImageFlipHorizontal",
         });
 
-        editor.addButton('editimage', {
-          title: 'Edit image',
-          cmd: 'mceEditImage'
+        editor.addButton("editimage", {
+          title: "Edit image",
+          cmd: "mceEditImage",
         });
 
-        editor.addButton('imageoptions', {
-          title: 'Image options',
-          icon: 'options',
-          cmd: 'mceImage'
+        editor.addButton("imageoptions", {
+          title: "Image options",
+          icon: "options",
+          cmd: "mceImage",
         });
 
         /*
@@ -3933,7 +4347,7 @@ define(
       }
 
       function addEvents() {
-        editor.on('NodeChange', function (e) {
+        editor.on("NodeChange", function (e) {
           // If the last node we selected was an image
           // And had a source that doesn't match the current blob url
           // We need to attempt to upload it
@@ -3951,44 +4365,52 @@ define(
       }
 
       function isEditableImage(img) {
-        var selectorMatched = editor.dom.is(img, 'img:not([data-mce-object],[data-mce-placeholder])');
+        var selectorMatched = editor.dom.is(
+          img,
+          "img:not([data-mce-object],[data-mce-placeholder])",
+        );
 
-        return selectorMatched && (isLocalImage(img) || isCorsImage(img) || editor.settings.imagetools_proxy);
+        return (
+          selectorMatched &&
+          (isLocalImage(img) ||
+            isCorsImage(img) ||
+            editor.settings.imagetools_proxy)
+        );
       }
 
       function addToolbars() {
         var toolbarItems = editor.settings.imagetools_toolbar;
 
         if (!toolbarItems) {
-          toolbarItems = 'rotateleft rotateright | flipv fliph | crop editimage imageoptions';
+          toolbarItems =
+            "rotateleft rotateright | flipv fliph | crop editimage imageoptions";
         }
 
-        editor.addContextToolbar(
-          isEditableImage,
-          toolbarItems
-        );
+        editor.addContextToolbar(isEditableImage, toolbarItems);
       }
 
-      Tools.each({
-        mceImageRotateLeft: rotate(-90),
-        mceImageRotateRight: rotate(90),
-        mceImageFlipVertical: flip('v'),
-        mceImageFlipHorizontal: flip('h'),
-        mceEditImage: editImageDialog
-      }, function (fn, cmd) {
-        editor.addCommand(cmd, fn);
-      });
+      Tools.each(
+        {
+          mceImageRotateLeft: rotate(-90),
+          mceImageRotateRight: rotate(90),
+          mceImageFlipVertical: flip("v"),
+          mceImageFlipHorizontal: flip("h"),
+          mceEditImage: editImageDialog,
+        },
+        function (fn, cmd) {
+          editor.addCommand(cmd, fn);
+        },
+      );
 
       addButtons();
       addToolbars();
       addEvents();
     };
 
-    PluginManager.add('imagetools', plugin);
+    PluginManager.add("imagetools", plugin);
 
-    return function () { };
-  }
-);
+    return function () {};
+  });
 
-dem('tinymce.plugins.imagetools.Plugin')();
+  dem("tinymce.plugins.imagetools.Plugin")();
 })();

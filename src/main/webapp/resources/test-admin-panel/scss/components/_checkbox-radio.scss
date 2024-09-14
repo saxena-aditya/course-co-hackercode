@@ -44,7 +44,7 @@
 
     input {
       &:checked {
-        +.input-helper {
+        + .input-helper {
           &:before {
             background-color: color(white);
           }
@@ -117,7 +117,7 @@
         -ms-transform: scale(0);
         -o-transform: scale(0);
         transform: scale(0);
-        content: '\F12C';
+        content: "\F12C";
         position: absolute;
         font-size: 0.9375rem;
         font-weight: bold;
@@ -138,7 +138,7 @@
     label {
       input {
         &:checked {
-          +.input-helper {
+          + .input-helper {
             &:before {
               background-color: theme-color(success);
               border: none;
@@ -183,7 +183,7 @@
 .form-radio {
   label {
     input {
-      +.input-helper {
+      + .input-helper {
         &:before {
           position: absolute;
           content: "";
@@ -238,7 +238,7 @@
       }
 
       &:checked {
-        +.input-helper {
+        + .input-helper {
           &:before {
             background-color: $white;
             border: 2px solid $border-color;
@@ -285,7 +285,7 @@
     label {
       input {
         &:checked {
-          +.input-helper {
+          + .input-helper {
             &:before {
               background: theme-color(success);
               border-color: theme-color(success);
@@ -306,7 +306,7 @@
               }
               color: color(white);
               background: none;
-              content: '\F12C';
+              content: "\F12C";
               font-family: Material Design Icons;
               text-align: center;
               font-weight: bold;

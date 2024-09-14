@@ -1,157 +1,158 @@
 #myFooter {
-    background-color: #efefef;
-    /* color: white; */
-    padding-top: 30px;
-    margin: 10% 0 0 0px;
+  background-color: #efefef;
+  /* color: white; */
+  padding-top: 30px;
+  margin: 10% 0 0 0px;
 }
 
 #myFooter .footer-copyright {
-    background-color: #333333;
-    position: relative;
-    padding-top: 3px;
-    padding-bottom: 3px;
-    text-align: center;
+  background-color: #333333;
+  position: relative;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  text-align: center;
 }
 
 #myFooter .row {
-    margin-bottom: 0px;
+  margin-bottom: 0px;
 }
 
 #myFooter .navbar-brand {
-    margin-top: 45px;
-    height: 65px;
+  margin-top: 45px;
+  height: 65px;
 }
 
 #myFooter .footer-copyright p {
-    margin: 10px;
-    color: #ccc;
+  margin: 10px;
+  color: #ccc;
 }
 
 #myFooter ul {
-    list-style-type: none;
-    padding-left: 0;
-    line-height: 1.7;
+  list-style-type: none;
+  padding-left: 0;
+  line-height: 1.7;
 }
 
 #myFooter h5 {
-    font-size: 18px;
-    color: #2f2e2e;
-    font-weight: bold;
-    margin-top: 30px;
-    margin-bottom: 10px;
+  font-size: 18px;
+  color: #2f2e2e;
+  font-weight: bold;
+  margin-top: 30px;
+  margin-bottom: 10px;
 }
 
 #myFooter h2 a {
-    font-size: 50px;
-    text-align: center;
-    color: #fff;
+  font-size: 50px;
+  text-align: center;
+  color: #fff;
 }
 
 #myFooter a {
-    color: #554f4f;
-    text-decoration: none;
+  color: #554f4f;
+  text-decoration: none;
 }
 
-#myFooter a:hover, #myFooter a:focus {
-    text-decoration: none;
-    color: black;
+#myFooter a:hover,
+#myFooter a:focus {
+  text-decoration: none;
+  color: black;
 }
 
 #myFooter .social-networks {
-    text-align: center;
-    padding-top: 0px;
-    padding-bottom: 16px;
-    width: fit-content;
-    /* margin: 0 auto; */
+  text-align: center;
+  padding-top: 0px;
+  padding-bottom: 16px;
+  width: fit-content;
+  /* margin: 0 auto; */
 }
 
 #myFooter .social-networks a {
-    font-size: 32px;
-    color: #6f6d6d;
-    padding: 10px;
-    transition: 0.2s;
+  font-size: 32px;
+  color: #6f6d6d;
+  padding: 10px;
+  transition: 0.2s;
 }
 
 #myFooter .social-networks a:hover {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 #myFooter .youtube:hover {
-    color: #c4302b;
+  color: #c4302b;
 }
 
 #myFooter .facebook:hover {
-    color: #0077e2;
+  color: #0077e2;
 }
 
 #myFooter .google:hover {
-    color: #ef1a1a;
+  color: #ef1a1a;
 }
 
 #myFooter .twitter:hover {
-    color: #00aced;
+  color: #00aced;
 }
 
 #myFooter .btn {
-    color: white;
-    background-color: #d84b6b;
-    border-radius: 20px;
-    border: none;
-    width: 150px;
-    display: block;
-    margin: 0 auto;
-    margin-top: 10px;
-    line-height: 25px;
+  color: white;
+  background-color: #d84b6b;
+  border-radius: 20px;
+  border: none;
+  width: 150px;
+  display: block;
+  margin: 0 auto;
+  margin-top: 10px;
+  line-height: 25px;
 }
 
 @media screen and (max-width: 767px) {
-    #myFooter {
-        text-align: center;
-    }
+  #myFooter {
+    text-align: center;
+  }
 
-    #v-counter {
-        position: relative !important;
-        right: auto !important;
-        bottom: auto !important;
-    }
+  #v-counter {
+    position: relative !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
 
-    #myFooter .social-networks {
-        margin: 0 auto !important;
-    }
+  #myFooter .social-networks {
+    margin: 0 auto !important;
+  }
 }
 
 /* CSS used for positioning the footers at the bottom of the page. */
 /* You can remove this. */
 html {
-    height: 100%;
+  height: 100%;
 }
 
 body {
-    display: flex;
-    display: -webkit-flex;
-    flex-direction: column;
-    -webkit-flex-direction: column;
-    height: 100%;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  height: 100%;
 }
 
 .content {
-    flex: 1 0 auto;
-    -webkit-flex: 1 0 auto;
-    min-height: 200px;
+  flex: 1 0 auto;
+  -webkit-flex: 1 0 auto;
+  min-height: 200px;
 }
 
 #myFooter {
-    flex: 0 0 auto;
-    -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+  -webkit-flex: 0 0 auto;
 }
 
 img#owl-graph-big {
-    width: 5em;
-    padding: 5%;
-    margin: 0% 10%;
+  width: 5em;
+  padding: 5%;
+  margin: 0% 10%;
 }
 
 .contact-us {
-    /* padding: 0 0 10px 0; */
-    font-weight: bold;
+  /* padding: 0 0 10px 0; */
+  font-weight: bold;
 }

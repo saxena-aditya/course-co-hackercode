@@ -1,103 +1,91 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.spellchecker.Plugin","tinymce.plugins.spellchecker.core.DomTextMatcher","tinymce.core.PluginManager","tinymce.core.util.Tools","tinymce.core.ui.Menu","tinymce.core.dom.DOMUtils","tinymce.core.util.XHR","tinymce.core.util.URI","tinymce.core.util.JSON","global!tinymce.util.Tools.resolve"]
 jsc*/
-/**
- * DomTextMatcher.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * DomTextMatcher.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.spellchecker.core.DomTextMatcher',
-  [
-  ],
-  function () {
+  define("tinymce.plugins.spellchecker.core.DomTextMatcher", [], function () {
     function isContentEditableFalse(node) {
       return node && node.nodeType == 1 && node.contentEditable === "false";
     }
@@ -107,7 +95,10 @@ define(
     // TODO: Handle contentEditable edgecase:
     // <p>text<span contentEditable="false">text<span contentEditable="true">text</span>text</span>text</p>
     return function (node, editor) {
-      var m, matches = [], text, dom = editor.dom;
+      var m,
+        matches = [],
+        text,
+        dom = editor.dom;
       var blockElementsMap, hiddenTextElementsMap, shortEndedElementsMap;
 
       blockElementsMap = editor.schema.getBlockElements(); // H1-H6, P, TD etc
@@ -116,14 +107,14 @@ define(
 
       function createMatch(m, data) {
         if (!m[0]) {
-          throw 'findAndReplaceDOMText cannot handle zero-length matches';
+          throw "findAndReplaceDOMText cannot handle zero-length matches";
         }
 
         return {
           start: m.index,
           end: m.index + m[0].length,
           text: m[0],
-          data: data
+          data: data,
         };
       }
 
@@ -134,18 +125,24 @@ define(
           return node.data;
         }
 
-        if (hiddenTextElementsMap[node.nodeName] && !blockElementsMap[node.nodeName]) {
-          return '';
+        if (
+          hiddenTextElementsMap[node.nodeName] &&
+          !blockElementsMap[node.nodeName]
+        ) {
+          return "";
         }
 
         if (isContentEditableFalse(node)) {
-          return '\n';
+          return "\n";
         }
 
-        txt = '';
+        txt = "";
 
-        if (blockElementsMap[node.nodeName] || shortEndedElementsMap[node.nodeName]) {
-          txt += '\n';
+        if (
+          blockElementsMap[node.nodeName] ||
+          shortEndedElementsMap[node.nodeName]
+        ) {
+          txt += "\n";
         }
 
         if ((node = node.firstChild)) {
@@ -158,9 +155,15 @@ define(
       }
 
       function stepThroughMatches(node, matches, replaceFn) {
-        var startNode, endNode, startNodeIndex,
-          endNodeIndex, innerNodes = [], atIndex = 0, curNode = node,
-          matchLocation, matchIndex = 0;
+        var startNode,
+          endNode,
+          startNodeIndex,
+          endNodeIndex,
+          innerNodes = [],
+          atIndex = 0,
+          curNode = node,
+          matchLocation,
+          matchIndex = 0;
 
         matches = matches.slice(0);
         matches.sort(function (a, b) {
@@ -169,8 +172,13 @@ define(
 
         matchLocation = matches.shift();
 
-        out: while (true) { //eslint-disable-line no-constant-condition
-          if (blockElementsMap[curNode.nodeName] || shortEndedElementsMap[curNode.nodeName] || isContentEditableFalse(curNode)) {
+        out: while (true) {
+          //eslint-disable-line no-constant-condition
+          if (
+            blockElementsMap[curNode.nodeName] ||
+            shortEndedElementsMap[curNode.nodeName] ||
+            isContentEditableFalse(curNode)
+          ) {
             atIndex++;
           }
 
@@ -201,13 +209,13 @@ define(
               endNodeIndex: endNodeIndex,
               innerNodes: innerNodes,
               match: matchLocation.text,
-              matchIndex: matchIndex
+              matchIndex: matchIndex,
             });
 
             // replaceFn has to return the node that replaced the endNode
             // and then we step back so we can continue from the end of the
             // match:
-            atIndex -= (endNode.length - endNodeIndex);
+            atIndex -= endNode.length - endNodeIndex;
             startNode = null;
             endNode = null;
             innerNodes = [];
@@ -217,7 +225,11 @@ define(
             if (!matchLocation) {
               break; // no more matches
             }
-          } else if ((!hiddenTextElementsMap[curNode.nodeName] || blockElementsMap[curNode.nodeName]) && curNode.firstChild) {
+          } else if (
+            (!hiddenTextElementsMap[curNode.nodeName] ||
+              blockElementsMap[curNode.nodeName]) &&
+            curNode.firstChild
+          ) {
             if (!isContentEditableFalse(curNode)) {
               // Move down
               curNode = curNode.firstChild;
@@ -230,7 +242,8 @@ define(
           }
 
           // Move forward or up:
-          while (true) { //eslint-disable-line no-constant-condition
+          while (true) {
+            //eslint-disable-line no-constant-condition
             if (curNode.nextSibling) {
               curNode = curNode.nextSibling;
               break;
@@ -244,9 +257,9 @@ define(
       }
 
       /**
-      * Generates the actual replaceFn which splits up text nodes
-      * and inserts the replacement element.
-      */
+       * Generates the actual replaceFn which splits up text nodes
+       * and inserts the replacement element.
+       */
       function genReplacer(callback) {
         function makeReplacementNode(fill, matchIndex) {
           var match = matches[matchIndex];
@@ -256,7 +269,7 @@ define(
           }
 
           var clone = match.stencil.cloneNode(false);
-          clone.setAttribute('data-mce-index', matchIndex);
+          clone.setAttribute("data-mce-index", matchIndex);
 
           if (fill) {
             clone.appendChild(dom.doc.createTextNode(fill));
@@ -266,8 +279,12 @@ define(
         }
 
         return function (range) {
-          var before, after, parentNode, startNode = range.startNode,
-            endNode = range.endNode, matchIndex = range.matchIndex,
+          var before,
+            after,
+            parentNode,
+            startNode = range.startNode,
+            endNode = range.endNode,
+            matchIndex = range.matchIndex,
             doc = dom.doc;
 
           if (startNode === endNode) {
@@ -276,7 +293,9 @@ define(
             parentNode = node.parentNode;
             if (range.startNodeIndex > 0) {
               // Add "before" text node (before the match)
-              before = doc.createTextNode(node.data.substring(0, range.startNodeIndex));
+              before = doc.createTextNode(
+                node.data.substring(0, range.startNodeIndex),
+              );
               parentNode.insertBefore(before, node);
             }
 
@@ -285,7 +304,9 @@ define(
             parentNode.insertBefore(el, node);
             if (range.endNodeIndex < node.length) {
               // Add "after" text node (after the match)
-              after = doc.createTextNode(node.data.substring(range.endNodeIndex));
+              after = doc.createTextNode(
+                node.data.substring(range.endNodeIndex),
+              );
               parentNode.insertBefore(after, node);
             }
 
@@ -295,9 +316,16 @@ define(
           }
 
           // Replace startNode -> [innerNodes...] -> endNode (in that order)
-          before = doc.createTextNode(startNode.data.substring(0, range.startNodeIndex));
-          after = doc.createTextNode(endNode.data.substring(range.endNodeIndex));
-          var elA = makeReplacementNode(startNode.data.substring(range.startNodeIndex), matchIndex);
+          before = doc.createTextNode(
+            startNode.data.substring(0, range.startNodeIndex),
+          );
+          after = doc.createTextNode(
+            endNode.data.substring(range.endNodeIndex),
+          );
+          var elA = makeReplacementNode(
+            startNode.data.substring(range.startNodeIndex),
+            matchIndex,
+          );
           var innerEls = [];
 
           for (var i = 0, l = range.innerNodes.length; i < l; ++i) {
@@ -307,7 +335,10 @@ define(
             innerEls.push(innerEl);
           }
 
-          var elB = makeReplacementNode(endNode.data.substring(0, range.endNodeIndex), matchIndex);
+          var elB = makeReplacementNode(
+            endNode.data.substring(0, range.endNodeIndex),
+            matchIndex,
+          );
 
           parentNode = startNode.parentNode;
           parentNode.insertBefore(before, startNode);
@@ -330,12 +361,14 @@ define(
       }
 
       function getWrappersByIndex(index) {
-        var elements = node.getElementsByTagName('*'), wrappers = [];
+        var elements = node.getElementsByTagName("*"),
+          wrappers = [];
 
         index = typeof index == "number" ? "" + index : null;
 
         for (var i = 0; i < elements.length; i++) {
-          var element = elements[i], dataIndex = element.getAttribute('data-mce-index');
+          var element = elements[i],
+            dataIndex = element.getAttribute("data-mce-index");
 
           if (dataIndex !== null && dataIndex.length) {
             if (dataIndex === index || index === null) {
@@ -348,11 +381,11 @@ define(
       }
 
       /**
-      * Returns the index of a specific match object or -1 if it isn't found.
-      *
-      * @param  {Match} match Text match object.
-      * @return {Number} Index of match or -1 if it isn't found.
-      */
+       * Returns the index of a specific match object or -1 if it isn't found.
+       *
+       * @param  {Match} match Text match object.
+       * @return {Number} Index of match or -1 if it isn't found.
+       */
       function indexOf(match) {
         var i = matches.length;
         while (i--) {
@@ -365,11 +398,11 @@ define(
       }
 
       /**
-      * Filters the matches. If the callback returns true it stays if not it gets removed.
-      *
-      * @param {Function} callback Callback to execute for each match.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Filters the matches. If the callback returns true it stays if not it gets removed.
+       *
+       * @param {Function} callback Callback to execute for each match.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function filter(callback) {
         var filteredMatches = [];
 
@@ -386,11 +419,11 @@ define(
       }
 
       /**
-      * Executes the specified callback for each match.
-      *
-      * @param {Function} callback  Callback to execute for each match.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Executes the specified callback for each match.
+       *
+       * @param {Function} callback  Callback to execute for each match.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function each(callback) {
         for (var i = 0, l = matches.length; i < l; i++) {
           if (callback(matches[i], i) === false) {
@@ -403,12 +436,12 @@ define(
       }
 
       /**
-      * Wraps the current matches with nodes created by the specified callback.
-      * Multiple clones of these matches might occur on matches that are on multiple nodex.
-      *
-      * @param {Function} callback Callback to execute in order to create elements for matches.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Wraps the current matches with nodes created by the specified callback.
+       * Multiple clones of these matches might occur on matches that are on multiple nodex.
+       *
+       * @param {Function} callback Callback to execute in order to create elements for matches.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function wrap(callback) {
         if (matches.length) {
           stepThroughMatches(node, matches, genReplacer(callback));
@@ -419,12 +452,12 @@ define(
       }
 
       /**
-      * Finds the specified regexp and adds them to the matches collection.
-      *
-      * @param {RegExp} regex Global regexp to search the current node by.
-      * @param {Object} [data] Optional custom data element for the match.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Finds the specified regexp and adds them to the matches collection.
+       *
+       * @param {RegExp} regex Global regexp to search the current node by.
+       * @param {Object} [data] Optional custom data element for the match.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function find(regex, data) {
         if (text && regex.global) {
           while ((m = regex.exec(text))) {
@@ -436,13 +469,14 @@ define(
       }
 
       /**
-      * Unwraps the specified match object or all matches if unspecified.
-      *
-      * @param {Object} [match] Optional match object.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Unwraps the specified match object or all matches if unspecified.
+       *
+       * @param {Object} [match] Optional match object.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function unwrap(match) {
-        var i, elements = getWrappersByIndex(match ? indexOf(match) : null);
+        var i,
+          elements = getWrappersByIndex(match ? indexOf(match) : null);
 
         i = elements.length;
         while (i--) {
@@ -453,51 +487,51 @@ define(
       }
 
       /**
-      * Returns a match object by the specified DOM element.
-      *
-      * @param {DOMElement} element Element to return match object for.
-      * @return {Object} Match object for the specified element.
-      */
+       * Returns a match object by the specified DOM element.
+       *
+       * @param {DOMElement} element Element to return match object for.
+       * @return {Object} Match object for the specified element.
+       */
       function matchFromElement(element) {
-        return matches[element.getAttribute('data-mce-index')];
+        return matches[element.getAttribute("data-mce-index")];
       }
 
       /**
-      * Returns a DOM element from the specified match element. This will be the first element if it's split
-      * on multiple nodes.
-      *
-      * @param {Object} match Match element to get first element of.
-      * @return {DOMElement} DOM element for the specified match object.
-      */
+       * Returns a DOM element from the specified match element. This will be the first element if it's split
+       * on multiple nodes.
+       *
+       * @param {Object} match Match element to get first element of.
+       * @return {DOMElement} DOM element for the specified match object.
+       */
       function elementFromMatch(match) {
         return getWrappersByIndex(indexOf(match))[0];
       }
 
       /**
-      * Adds match the specified range for example a grammar line.
-      *
-      * @param {Number} start Start offset.
-      * @param {Number} length Length of the text.
-      * @param {Object} data Custom data object for match.
-      * @return {DomTextMatcher} Current DomTextMatcher instance.
-      */
+       * Adds match the specified range for example a grammar line.
+       *
+       * @param {Number} start Start offset.
+       * @param {Number} length Length of the text.
+       * @param {Object} data Custom data object for match.
+       * @return {DomTextMatcher} Current DomTextMatcher instance.
+       */
       function add(start, length, data) {
         matches.push({
           start: start,
           end: start + length,
           text: text.substr(start, length),
-          data: data
+          data: data,
         });
 
         return this;
       }
 
       /**
-      * Returns a DOM range for the specified match.
-      *
-      * @param  {Object} match Match object to get range for.
-      * @return {DOMRange} DOM Range for the specified match.
-      */
+       * Returns a DOM range for the specified match.
+       *
+       * @param  {Object} match Match object to get range for.
+       * @return {DOMRange} DOM Range for the specified match.
+       */
       function rangeFromMatch(match) {
         var wrappers = getWrappersByIndex(indexOf(match));
 
@@ -509,12 +543,12 @@ define(
       }
 
       /**
-      * Replaces the specified match with the specified text.
-      *
-      * @param {Object} match Match object to replace.
-      * @param {String} text Text to replace the match with.
-      * @return {DOMRange} DOM range produced after the replace.
-      */
+       * Replaces the specified match with the specified text.
+       *
+       * @param {Object} match Match object to replace.
+       * @param {String} text Text to replace the match with.
+       * @return {DOMRange} DOM range produced after the replace.
+       */
       function replace(match, text) {
         var rng = rangeFromMatch(match);
 
@@ -528,10 +562,10 @@ define(
       }
 
       /**
-      * Resets the DomTextMatcher instance. This will remove any wrapped nodes and remove any matches.
-      *
-      * @return {[type]} [description]
-      */
+       * Resets the DomTextMatcher instance. This will remove any wrapped nodes and remove any matches.
+       *
+       * @return {[type]} [description]
+       */
       function reset() {
         matches.splice(0, matches.length);
         unwrap();
@@ -555,183 +589,165 @@ define(
         unwrap: unwrap,
         replace: replace,
         rangeFromMatch: rangeFromMatch,
-        indexOf: indexOf
+        indexOf: indexOf,
       };
     };
-  }
-);
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Tools',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Tools');
-  }
-);
+  define("tinymce.core.util.Tools", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Tools");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Menu',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Menu');
-  }
-);
+  define("tinymce.core.ui.Menu", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Menu");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.dom.DOMUtils',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.dom.DOMUtils');
-  }
-);
+  define("tinymce.core.dom.DOMUtils", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.dom.DOMUtils");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.XHR',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.XHR');
-  }
-);
+  define("tinymce.core.util.XHR", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.XHR");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.URI',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.URI');
-  }
-);
+  define("tinymce.core.util.URI", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.URI");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.JSON',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.JSON');
-  }
-);
+  define("tinymce.core.util.JSON", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.JSON");
+  });
 
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class contains all core logic for the code plugin.
- *
- * @class tinymce.spellchecker.Plugin
- * @private
- */
-define(
-  'tinymce.plugins.spellchecker.Plugin',
-  [
-    'tinymce.plugins.spellchecker.core.DomTextMatcher',
-    'tinymce.core.PluginManager',
-    'tinymce.core.util.Tools',
-    'tinymce.core.ui.Menu',
-    'tinymce.core.dom.DOMUtils',
-    'tinymce.core.util.XHR',
-    'tinymce.core.util.URI',
-    'tinymce.core.util.JSON'
-  ],
-  function (DomTextMatcher, PluginManager, Tools, Menu, DOMUtils, XHR, URI, JSON) {
-    PluginManager.add('spellchecker', function (editor, url) {
-      var languageMenuItems, self = this, lastSuggestions, started, suggestionsMenu, settings = editor.settings;
+  /**
+   * This class contains all core logic for the code plugin.
+   *
+   * @class tinymce.spellchecker.Plugin
+   * @private
+   */
+  define("tinymce.plugins.spellchecker.Plugin", [
+    "tinymce.plugins.spellchecker.core.DomTextMatcher",
+    "tinymce.core.PluginManager",
+    "tinymce.core.util.Tools",
+    "tinymce.core.ui.Menu",
+    "tinymce.core.dom.DOMUtils",
+    "tinymce.core.util.XHR",
+    "tinymce.core.util.URI",
+    "tinymce.core.util.JSON",
+  ], function (
+    DomTextMatcher,
+    PluginManager,
+    Tools,
+    Menu,
+    DOMUtils,
+    XHR,
+    URI,
+    JSON,
+  ) {
+    PluginManager.add("spellchecker", function (editor, url) {
+      var languageMenuItems,
+        self = this,
+        lastSuggestions,
+        started,
+        suggestionsMenu,
+        settings = editor.settings;
       var hasDictionarySupport;
 
       function getTextMatcher() {
@@ -749,7 +765,7 @@ define(
           items.push({
             selectable: true,
             text: languageValue.name,
-            data: languageValue.value
+            data: languageValue.value,
           });
         });
 
@@ -757,31 +773,36 @@ define(
       }
 
       // draw back if power version is requested and registered
-      if (/(^|[ ,])tinymcespellchecker([, ]|$)/.test(settings.plugins) && PluginManager.get('tinymcespellchecker')) {
+      if (
+        /(^|[ ,])tinymcespellchecker([, ]|$)/.test(settings.plugins) &&
+        PluginManager.get("tinymcespellchecker")
+      ) {
         /*eslint no-console:0 */
         if (typeof console !== "undefined" && console.log) {
           console.log(
             "Spell Checker Pro is incompatible with Spell Checker plugin! " +
-            "Remove 'spellchecker' from the 'plugins' option."
+              "Remove 'spellchecker' from the 'plugins' option.",
           );
         }
         return;
       }
 
-      var languagesString = settings.spellchecker_languages ||
-        'English=en,Danish=da,Dutch=nl,Finnish=fi,French=fr_FR,' +
-        'German=de,Italian=it,Polish=pl,Portuguese=pt_BR,' +
-        'Spanish=es,Swedish=sv';
+      var languagesString =
+        settings.spellchecker_languages ||
+        "English=en,Danish=da,Dutch=nl,Finnish=fi,French=fr_FR," +
+          "German=de,Italian=it,Polish=pl,Portuguese=pt_BR," +
+          "Spanish=es,Swedish=sv";
 
-      languageMenuItems = buildMenuItems('Language',
-        Tools.map(languagesString.split(','), function (langPair) {
-          langPair = langPair.split('=');
+      languageMenuItems = buildMenuItems(
+        "Language",
+        Tools.map(languagesString.split(","), function (langPair) {
+          langPair = langPair.split("=");
 
           return {
             name: langPair[0],
-            value: langPair[1]
+            value: langPair[1],
           };
-        })
+        }),
       );
 
       function isEmpty(obj) {
@@ -795,7 +816,8 @@ define(
       }
 
       function showSuggestions(word, spans) {
-        var items = [], suggestions = lastSuggestions[word];
+        var items = [],
+          suggestions = lastSuggestions[word];
 
         Tools.each(suggestions, function (suggestion) {
           items.push({
@@ -804,47 +826,50 @@ define(
               editor.insertContent(editor.dom.encode(suggestion));
               editor.dom.remove(spans);
               checkIfFinished();
-            }
+            },
           });
         });
 
-        items.push({ text: '-' });
+        items.push({ text: "-" });
 
         if (hasDictionarySupport) {
           items.push({
-            text: 'Add to Dictionary', onclick: function () {
+            text: "Add to Dictionary",
+            onclick: function () {
               addToDictionary(word, spans);
-            }
+            },
           });
         }
 
         items.push.apply(items, [
           {
-            text: 'Ignore', onclick: function () {
+            text: "Ignore",
+            onclick: function () {
               ignoreWord(word, spans);
-            }
+            },
           },
 
           {
-            text: 'Ignore all', onclick: function () {
+            text: "Ignore all",
+            onclick: function () {
               ignoreWord(word, spans, true);
-            }
-          }
+            },
+          },
         ]);
 
         // Render menu
         suggestionsMenu = new Menu({
           items: items,
-          context: 'contextmenu',
+          context: "contextmenu",
           onautohide: function (e) {
-            if (e.target.className.indexOf('spellchecker') != -1) {
+            if (e.target.className.indexOf("spellchecker") != -1) {
               e.preventDefault();
             }
           },
           onhide: function () {
             suggestionsMenu.remove();
             suggestionsMenu = null;
-          }
+          },
         });
 
         suggestionsMenu.renderTo(document.body);
@@ -855,9 +880,11 @@ define(
         var root = editor.dom.getRoot();
 
         // Adjust targetPos for scrolling in the editor
-        if (root.nodeName == 'BODY') {
-          targetPos.x -= root.ownerDocument.documentElement.scrollLeft || root.scrollLeft;
-          targetPos.y -= root.ownerDocument.documentElement.scrollTop || root.scrollTop;
+        if (root.nodeName == "BODY") {
+          targetPos.x -=
+            root.ownerDocument.documentElement.scrollLeft || root.scrollLeft;
+          targetPos.y -=
+            root.ownerDocument.documentElement.scrollTop || root.scrollTop;
         } else {
           targetPos.x -= root.scrollLeft;
           targetPos.y -= root.scrollTop;
@@ -874,36 +901,50 @@ define(
         // spaces, quotes, copy right characters etc. It's escaped with unicode characters
         // to make it easier to output scripts on servers using different encodings
         // so if you add any characters outside the 128 byte range make sure to escape it
-        return editor.getParam('spellchecker_wordchar_pattern') || new RegExp("[^" +
-          "\\s!\"#$%&()*+,-./:;<=>?@[\\]^_{|}`" +
-          "\u00a7\u00a9\u00ab\u00ae\u00b1\u00b6\u00b7\u00b8\u00bb" +
-          "\u00bc\u00bd\u00be\u00bf\u00d7\u00f7\u00a4\u201d\u201c\u201e\u00a0\u2002\u2003\u2009" +
-          "]+", "g");
+        return (
+          editor.getParam("spellchecker_wordchar_pattern") ||
+          new RegExp(
+            "[^" +
+              '\\s!"#$%&()*+,-./:;<=>?@[\\]^_{|}`' +
+              "\u00a7\u00a9\u00ab\u00ae\u00b1\u00b6\u00b7\u00b8\u00bb" +
+              "\u00bc\u00bd\u00be\u00bf\u00d7\u00f7\u00a4\u201d\u201c\u201e\u00a0\u2002\u2003\u2009" +
+              "]+",
+            "g",
+          )
+        );
       }
 
-      function defaultSpellcheckCallback(method, text, doneCallback, errorCallback) {
-        var data = { method: method, lang: settings.spellchecker_language }, postData = '';
+      function defaultSpellcheckCallback(
+        method,
+        text,
+        doneCallback,
+        errorCallback,
+      ) {
+        var data = { method: method, lang: settings.spellchecker_language },
+          postData = "";
 
         data[method == "addToDictionary" ? "word" : "text"] = text;
 
         Tools.each(data, function (value, key) {
           if (postData) {
-            postData += '&';
+            postData += "&";
           }
 
-          postData += key + '=' + encodeURIComponent(value);
+          postData += key + "=" + encodeURIComponent(value);
         });
 
         XHR.send({
           url: new URI(url).toAbsolute(settings.spellchecker_rpc_url),
           type: "post",
-          content_type: 'application/x-www-form-urlencoded',
+          content_type: "application/x-www-form-urlencoded",
           data: postData,
           success: function (result) {
             result = JSON.parse(result);
 
             if (!result) {
-              var message = editor.translate("Server response wasn't proper JSON.");
+              var message = editor.translate(
+                "Server response wasn't proper JSON.",
+              );
               errorCallback(message);
             } else if (result.error) {
               errorCallback(result.error);
@@ -912,17 +953,25 @@ define(
             }
           },
           error: function () {
-            var message = editor.translate("The spelling service was not found: (") +
+            var message =
+              editor.translate("The spelling service was not found: (") +
               settings.spellchecker_rpc_url +
               editor.translate(")");
             errorCallback(message);
-          }
+          },
         });
       }
 
       function sendRpcCall(name, data, successCallback, errorCallback) {
-        var spellCheckCallback = settings.spellchecker_callback || defaultSpellcheckCallback;
-        spellCheckCallback.call(self, name, data, successCallback, errorCallback);
+        var spellCheckCallback =
+          settings.spellchecker_callback || defaultSpellcheckCallback;
+        spellCheckCallback.call(
+          self,
+          name,
+          data,
+          successCallback,
+          errorCallback,
+        );
       }
 
       function spellcheck() {
@@ -931,18 +980,23 @@ define(
         }
 
         function errorCallback(message) {
-          editor.notificationManager.open({ text: message, type: 'error' });
+          editor.notificationManager.open({ text: message, type: "error" });
           editor.setProgressState(false);
           finish();
         }
 
         editor.setProgressState(true);
-        sendRpcCall("spellcheck", getTextMatcher().text, markErrors, errorCallback);
+        sendRpcCall(
+          "spellcheck",
+          getTextMatcher().text,
+          markErrors,
+          errorCallback,
+        );
         editor.focus();
       }
 
       function checkIfFinished() {
-        if (!editor.dom.select('span.mce-spellchecker-word').length) {
+        if (!editor.dom.select("span.mce-spellchecker-word").length) {
           finish();
         }
       }
@@ -950,25 +1004,33 @@ define(
       function addToDictionary(word, spans) {
         editor.setProgressState(true);
 
-        sendRpcCall("addToDictionary", word, function () {
-          editor.setProgressState(false);
-          editor.dom.remove(spans, true);
-          checkIfFinished();
-        }, function (message) {
-          editor.notificationManager.open({ text: message, type: 'error' });
-          editor.setProgressState(false);
-        });
+        sendRpcCall(
+          "addToDictionary",
+          word,
+          function () {
+            editor.setProgressState(false);
+            editor.dom.remove(spans, true);
+            checkIfFinished();
+          },
+          function (message) {
+            editor.notificationManager.open({ text: message, type: "error" });
+            editor.setProgressState(false);
+          },
+        );
       }
 
       function ignoreWord(word, spans, all) {
         editor.selection.collapse();
 
         if (all) {
-          Tools.each(editor.dom.select('span.mce-spellchecker-word'), function (span) {
-            if (span.getAttribute('data-mce-word') == word) {
-              editor.dom.remove(span, true);
-            }
-          });
+          Tools.each(
+            editor.dom.select("span.mce-spellchecker-word"),
+            function (span) {
+              if (span.getAttribute("data-mce-word") == word) {
+                editor.dom.remove(span, true);
+              }
+            },
+          );
         } else {
           editor.dom.remove(spans, true);
         }
@@ -982,13 +1044,13 @@ define(
 
         if (started) {
           started = false;
-          editor.fire('SpellcheckEnd');
+          editor.fire("SpellcheckEnd");
           return true;
         }
       }
 
       function getElmIndex(elm) {
-        var value = elm.getAttribute('data-mce-index');
+        var value = elm.getAttribute("data-mce-index");
 
         if (typeof value == "number") {
           return "" + value;
@@ -998,9 +1060,10 @@ define(
       }
 
       function findSpansByIndex(index) {
-        var nodes, spans = [];
+        var nodes,
+          spans = [];
 
-        nodes = Tools.toArray(editor.getBody().getElementsByTagName('span'));
+        nodes = Tools.toArray(editor.getBody().getElementsByTagName("span"));
         if (nodes.length) {
           for (var i = 0; i < nodes.length; i++) {
             var nodeIndex = getElmIndex(nodes[i]);
@@ -1018,7 +1081,7 @@ define(
         return spans;
       }
 
-      editor.on('click', function (e) {
+      editor.on("click", function (e) {
         var target = e.target;
 
         if (target.className == "mce-spellchecker-word") {
@@ -1031,14 +1094,14 @@ define(
             rng.setStartBefore(spans[0]);
             rng.setEndAfter(spans[spans.length - 1]);
             editor.selection.setRng(rng);
-            showSuggestions(target.getAttribute('data-mce-word'), spans);
+            showSuggestions(target.getAttribute("data-mce-word"), spans);
           }
         }
       });
 
-      editor.addMenuItem('spellchecker', {
-        text: 'Spellcheck',
-        context: 'tools',
+      editor.addMenuItem("spellchecker", {
+        text: "Spellcheck",
+        context: "tools",
         onclick: spellcheck,
         selectable: true,
         onPostRender: function () {
@@ -1046,10 +1109,10 @@ define(
 
           self.active(started);
 
-          editor.on('SpellcheckStart SpellcheckEnd', function () {
+          editor.on("SpellcheckStart SpellcheckEnd", function () {
             self.active(started);
           });
-        }
+        },
       });
 
       function updateSelection(e) {
@@ -1086,42 +1149,45 @@ define(
         editor.setProgressState(false);
 
         if (isEmpty(suggestions)) {
-          var message = editor.translate('No misspellings found.');
-          editor.notificationManager.open({ text: message, type: 'info' });
+          var message = editor.translate("No misspellings found.");
+          editor.notificationManager.open({ text: message, type: "info" });
           started = false;
           return;
         }
 
         lastSuggestions = suggestions;
 
-        getTextMatcher().find(getWordCharPattern()).filter(function (match) {
-          return !!suggestions[match.text];
-        }).wrap(function (match) {
-          return editor.dom.create('span', {
-            "class": 'mce-spellchecker-word',
-            "data-mce-bogus": 1,
-            "data-mce-word": match.text
+        getTextMatcher()
+          .find(getWordCharPattern())
+          .filter(function (match) {
+            return !!suggestions[match.text];
+          })
+          .wrap(function (match) {
+            return editor.dom.create("span", {
+              class: "mce-spellchecker-word",
+              "data-mce-bogus": 1,
+              "data-mce-word": match.text,
+            });
           });
-        });
 
         started = true;
-        editor.fire('SpellcheckStart');
+        editor.fire("SpellcheckStart");
       }
 
       var buttonArgs = {
-        tooltip: 'Spellcheck',
+        tooltip: "Spellcheck",
         onclick: spellcheck,
         onPostRender: function () {
           var self = this;
 
-          editor.on('SpellcheckStart SpellcheckEnd', function () {
+          editor.on("SpellcheckStart SpellcheckEnd", function () {
             self.active(started);
           });
-        }
+        },
       };
 
       if (languageMenuItems.length > 1) {
-        buttonArgs.type = 'splitbutton';
+        buttonArgs.type = "splitbutton";
         buttonArgs.menu = languageMenuItems;
         buttonArgs.onshow = updateSelection;
         buttonArgs.onselect = function (e) {
@@ -1129,17 +1195,17 @@ define(
         };
       }
 
-      editor.addButton('spellchecker', buttonArgs);
-      editor.addCommand('mceSpellCheck', spellcheck);
+      editor.addButton("spellchecker", buttonArgs);
+      editor.addCommand("mceSpellCheck", spellcheck);
 
-      editor.on('remove', function () {
+      editor.on("remove", function () {
         if (suggestionsMenu) {
           suggestionsMenu.remove();
           suggestionsMenu = null;
         }
       });
 
-      editor.on('change', checkIfFinished);
+      editor.on("change", checkIfFinished);
 
       this.getTextMatcher = getTextMatcher;
       this.getWordCharPattern = getWordCharPattern;
@@ -1149,11 +1215,11 @@ define(
       };
 
       // Set default spellchecker language if it's not specified
-      settings.spellchecker_language = settings.spellchecker_language || settings.language || 'en';
+      settings.spellchecker_language =
+        settings.spellchecker_language || settings.language || "en";
     });
 
-    return function () { };
-  }
-);
-dem('tinymce.plugins.spellchecker.Plugin')();
+    return function () {};
+  });
+  dem("tinymce.plugins.spellchecker.Plugin")();
 })();

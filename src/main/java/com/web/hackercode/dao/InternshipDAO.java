@@ -1,17 +1,16 @@
 package com.web.hackercode.dao;
 
+import com.web.hackercode.structures.InternshipForm;
 import java.util.List;
 
-import com.web.hackercode.structures.InternshipForm;
-
 public interface InternshipDAO {
-	public boolean applyForInternship(InternshipForm itn);
+  public boolean applyForInternship(InternshipForm itn);
 
-	public List<InternshipForm> getInternshipApplications();
+  public List<InternshipForm> getInternshipApplications();
 
-	public InternshipForm getInternshipApplication(String id);
+  public InternshipForm getInternshipApplication(String id);
 
-	public boolean markInternshipLead(String id);
+  public boolean markInternshipLead(String id);
 
-	public void addDrafterAccount(InternshipForm iform, String internUsername);
+  public void addDrafterAccount(InternshipForm iform, String internUsername);
 }

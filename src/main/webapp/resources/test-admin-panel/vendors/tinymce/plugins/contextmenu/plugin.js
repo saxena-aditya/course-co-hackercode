@@ -1,202 +1,168 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.contextmenu.Plugin","tinymce.core.dom.DOMUtils","tinymce.core.Env","tinymce.core.PluginManager","tinymce.core.ui.Menu","tinymce.core.util.Tools","tinymce.plugins.contextmenu.RangePoint","global!tinymce.util.Tools.resolve","ephox.katamari.api.Arr","ephox.katamari.api.Option","global!Array","global!Error","global!String","ephox.katamari.api.Fun","global!Object"]
 jsc*/
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.dom.DOMUtils',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.dom.DOMUtils');
-  }
-);
+  define("tinymce.core.dom.DOMUtils", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.dom.DOMUtils");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.Env',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.Env');
-  }
-);
+  define("tinymce.core.Env", ["global!tinymce.util.Tools.resolve"], function (
+    resolve,
+  ) {
+    return resolve("tinymce.Env");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.ui.Menu',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.ui.Menu');
-  }
-);
+  define("tinymce.core.ui.Menu", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.ui.Menu");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Tools',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Tools');
-  }
-);
+  define("tinymce.core.util.Tools", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Tools");
+  });
 
-defineGlobal("global!Array", Array);
-defineGlobal("global!Error", Error);
-define(
-  'ephox.katamari.api.Fun',
-
-  [
-    'global!Array',
-    'global!Error'
-  ],
-
-  function (Array, Error) {
-
-    var noop = function () { };
+  defineGlobal("global!Array", Array);
+  defineGlobal("global!Error", Error);
+  define("ephox.katamari.api.Fun", ["global!Array", "global!Error"], function (
+    Array,
+    Error,
+  ) {
+    var noop = function () {};
 
     var compose = function (fa, fb) {
       return function () {
@@ -214,7 +180,7 @@ define(
       return x;
     };
 
-    var tripleEquals = function(a, b) {
+    var tripleEquals = function (a, b) {
       return a === b;
     };
 
@@ -225,7 +191,7 @@ define(
       // Pay attention to what variable is where, and the -1 magic.
       // thankfully, we have tests for this.
       var args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++) args[i-1] = arguments[i];
+      for (var i = 1; i < arguments.length; i++) args[i - 1] = arguments[i];
 
       return function () {
         var newArgs = new Array(arguments.length);
@@ -252,13 +218,12 @@ define(
       return f();
     };
 
-    var call = function(f) {
+    var call = function (f) {
       f();
     };
 
     var never = constant(false);
     var always = constant(true);
-    
 
     return {
       noop: noop,
@@ -272,22 +237,15 @@ define(
       apply: apply,
       call: call,
       never: never,
-      always: always
+      always: always,
     };
-  }
-);
+  });
 
-defineGlobal("global!Object", Object);
-define(
-  'ephox.katamari.api.Option',
-
-  [
-    'ephox.katamari.api.Fun',
-    'global!Object'
-  ],
-
-  function (Fun, Object) {
-
+  defineGlobal("global!Object", Object);
+  define("ephox.katamari.api.Option", [
+    "ephox.katamari.api.Fun",
+    "global!Object",
+  ], function (Fun, Object) {
     var never = Fun.never;
     var always = Fun.always;
 
@@ -347,7 +305,9 @@ define(
 
     */
 
-    var none = function () { return NONE; };
+    var none = function () {
+      return NONE;
+    };
 
     var NONE = (function () {
       var eq = function (o) {
@@ -355,19 +315,25 @@ define(
       };
 
       // inlined from peanut, maybe a micro-optimisation?
-      var call = function (thunk) { return thunk(); };
-      var id = function (n) { return n; };
-      var noop = function () { };
+      var call = function (thunk) {
+        return thunk();
+      };
+      var id = function (n) {
+        return n;
+      };
+      var noop = function () {};
 
       var me = {
-        fold: function (n, s) { return n(); },
+        fold: function (n, s) {
+          return n();
+        },
         is: never,
         isSome: never,
         isNone: always,
         getOr: id,
         getOrThunk: call,
         getOrDie: function (msg) {
-          throw new Error(msg || 'error: getOrDie called on none.');
+          throw new Error(msg || "error: getOrDie called on none.");
         },
         or: id,
         orThunk: call,
@@ -381,19 +347,21 @@ define(
         filter: none,
         equals: eq,
         equals_: eq,
-        toArray: function () { return []; },
-        toString: Fun.constant("none()")
+        toArray: function () {
+          return [];
+        },
+        toString: Fun.constant("none()"),
       };
       if (Object.freeze) Object.freeze(me);
       return me;
     })();
 
-
     /** some :: a -> Option a */
     var some = function (a) {
-
       // inlined from peanut, maybe a micro-optimisation?
-      var constant_a = function () { return a; };
+      var constant_a = function () {
+        return a;
+      };
 
       var self = function () {
         // can't Fun.constant this one
@@ -409,8 +377,12 @@ define(
       };
 
       var me = {
-        fold: function (n, s) { return s(a); },
-        is: function (v) { return a === v; },
+        fold: function (n, s) {
+          return s(a);
+        },
+        is: function (v) {
+          return a === v;
+        },
         isSome: always,
         isNone: never,
         getOr: constant_a,
@@ -420,7 +392,7 @@ define(
         orThunk: self,
         map: map,
         ap: function (optfab) {
-          return optfab.fold(none, function(fab) {
+          return optfab.fold(none, function (fab) {
             return some(fab(a));
           });
         },
@@ -438,17 +410,16 @@ define(
           return o.is(a);
         },
         equals_: function (o, elementEq) {
-          return o.fold(
-            never,
-            function (b) { return elementEq(a, b); }
-          );
+          return o.fold(never, function (b) {
+            return elementEq(a, b);
+          });
         },
         toArray: function () {
           return [a];
         },
         toString: function () {
-          return 'some(' + a + ')';
-        }
+          return "some(" + a + ")";
+        },
       };
       return me;
     };
@@ -461,31 +432,29 @@ define(
     return {
       some: some,
       none: none,
-      from: from
+      from: from,
     };
-  }
-);
+  });
 
-defineGlobal("global!String", String);
-define(
-  'ephox.katamari.api.Arr',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Array',
-    'global!Error',
-    'global!String'
-  ],
-
-  function (Option, Array, Error, String) {
+  defineGlobal("global!String", String);
+  define("ephox.katamari.api.Arr", [
+    "ephox.katamari.api.Option",
+    "global!Array",
+    "global!Error",
+    "global!String",
+  ], function (Option, Array, Error, String) {
     // Use the native Array.indexOf if it is available (IE9+) otherwise fall back to manual iteration
     // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
     var rawIndexOf = (function () {
       var pIndexOf = Array.prototype.indexOf;
 
-      var fastIndex = function (xs, x) { return  pIndexOf.call(xs, x); };
+      var fastIndex = function (xs, x) {
+        return pIndexOf.call(xs, x);
+      };
 
-      var slowIndex = function(xs, x) { return slowIndexOf(xs, x); };
+      var slowIndex = function (xs, x) {
+        return slowIndexOf(xs, x);
+      };
 
       return pIndexOf === undefined ? slowIndex : fastIndex;
     })();
@@ -530,7 +499,7 @@ define(
       return r;
     };
 
-    var map = function(xs, f) {
+    var map = function (xs, f) {
       // pre-allocating array size when it's guaranteed to be known
       // http://jsperf.com/push-allocated-vs-dynamic/22
       var len = xs.length;
@@ -544,7 +513,7 @@ define(
 
     // Unwound implementing other functions in terms of each.
     // The code size is roughly the same, and it should allow for better optimisation.
-    var each = function(xs, f) {
+    var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         f(x, i, xs);
@@ -558,7 +527,7 @@ define(
       }
     };
 
-    var partition = function(xs, pred) {
+    var partition = function (xs, pred) {
       var pass = [];
       var fail = [];
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -569,7 +538,7 @@ define(
       return { pass: pass, fail: fail };
     };
 
-    var filter = function(xs, pred) {
+    var filter = function (xs, pred) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -670,7 +639,10 @@ define(
       var r = [];
       for (var i = 0, len = xs.length; i < len; ++i) {
         // Ensure that each value is an array itself
-        if (! Array.prototype.isPrototypeOf(xs[i])) throw new Error('Arr.flatten item ' + i + ' was not an array, input: ' + xs);
+        if (!Array.prototype.isPrototypeOf(xs[i]))
+          throw new Error(
+            "Arr.flatten item " + i + " was not an array, input: " + xs,
+          );
         push.apply(r, xs[i]);
       }
       return r;
@@ -692,9 +664,12 @@ define(
     };
 
     var equal = function (a1, a2) {
-      return a1.length === a2.length && forall(a1, function (x, i) {
-        return x === a2[i];
-      });
+      return (
+        a1.length === a2.length &&
+        forall(a1, function (x, i) {
+          return x === a2[i];
+        })
+      );
     };
 
     var slice = Array.prototype.slice;
@@ -710,7 +685,7 @@ define(
       });
     };
 
-    var mapToObject = function(xs, f) {
+    var mapToObject = function (xs, f) {
       var r = {};
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -719,7 +694,7 @@ define(
       return r;
     };
 
-    var pure = function(x) {
+    var pure = function (x) {
       return [x];
     };
 
@@ -753,26 +728,22 @@ define(
       mapToObject: mapToObject,
       pure: pure,
       sort: sort,
-      range: range
+      range: range,
     };
-  }
-);
-/**
- * RangePoint.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  /**
+   * RangePoint.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.contextmenu.RangePoint',
-  [
-    'ephox.katamari.api.Arr'
-  ],
-  function (Arr) {
+  define("tinymce.plugins.contextmenu.RangePoint", [
+    "ephox.katamari.api.Arr",
+  ], function (Arr) {
     var containsXY = function (clientRect, clientX, clientY) {
       return (
         clientX >= clientRect.left &&
@@ -787,47 +758,50 @@ define(
         return false;
       }
 
-      return Arr.foldl(range.getClientRects(), function (state, rect) {
-        return state || containsXY(rect, clientX, clientY);
-      }, false);
+      return Arr.foldl(
+        range.getClientRects(),
+        function (state, rect) {
+          return state || containsXY(rect, clientX, clientY);
+        },
+        false,
+      );
     };
 
     return {
-      isXYWithinRange: isXYWithinRange
+      isXYWithinRange: isXYWithinRange,
     };
-  }
-);
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class contains all core logic for the contextmenu plugin.
- *
- * @class tinymce.contextmenu.Plugin
- * @private
- */
-define(
-  'tinymce.plugins.contextmenu.Plugin',
-  [
-    'tinymce.core.dom.DOMUtils',
-    'tinymce.core.Env',
-    'tinymce.core.PluginManager',
-    'tinymce.core.ui.Menu',
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.contextmenu.RangePoint'
-  ],
-  function (DOMUtils, Env, PluginManager, Menu, Tools, RangePoint) {
+  /**
+   * This class contains all core logic for the contextmenu plugin.
+   *
+   * @class tinymce.contextmenu.Plugin
+   * @private
+   */
+  define("tinymce.plugins.contextmenu.Plugin", [
+    "tinymce.core.dom.DOMUtils",
+    "tinymce.core.Env",
+    "tinymce.core.PluginManager",
+    "tinymce.core.ui.Menu",
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.contextmenu.RangePoint",
+  ], function (DOMUtils, Env, PluginManager, Menu, Tools, RangePoint) {
     var DOM = DOMUtils.DOM;
 
-    PluginManager.add('contextmenu', function (editor) {
-      var menu, visibleState, contextmenuNeverUseNative = editor.settings.contextmenu_never_use_native;
+    PluginManager.add("contextmenu", function (editor) {
+      var menu,
+        visibleState,
+        contextmenuNeverUseNative =
+          editor.settings.contextmenu_never_use_native;
 
       var isNativeOverrideKeyEvent = function (e) {
         return e.ctrlKey && !contextmenuNeverUseNative;
@@ -842,11 +816,14 @@ define(
       };
 
       var isImage = function (elm) {
-        return elm && elm.nodeName === 'IMG';
+        return elm && elm.nodeName === "IMG";
       };
 
       var isEventOnImageOutsideRange = function (evt, range) {
-        return isImage(evt.target) && RangePoint.isXYWithinRange(evt.clientX, evt.clientY, range) === false;
+        return (
+          isImage(evt.target) &&
+          RangePoint.isXYWithinRange(evt.clientX, evt.clientY, range) === false
+        );
       };
 
       /**
@@ -855,9 +832,14 @@ define(
        * the context menu we also need to override this expanding so the behavior becomes
        * normalized. Firefox on os x doesn't expand to the word when using the context menu.
        */
-      editor.on('mousedown', function (e) {
-        if (isMacWebKit() && e.button === 2 && !isNativeOverrideKeyEvent(e) && editor.selection.isCollapsed()) {
-          editor.once('contextmenu', function (e2) {
+      editor.on("mousedown", function (e) {
+        if (
+          isMacWebKit() &&
+          e.button === 2 &&
+          !isNativeOverrideKeyEvent(e) &&
+          editor.selection.isCollapsed()
+        ) {
+          editor.once("contextmenu", function (e2) {
             if (!isImage(e2.target)) {
               editor.selection.placeCaretAt(e2.clientX, e2.clientY);
             }
@@ -865,7 +847,7 @@ define(
         }
       });
 
-      editor.on('contextmenu', function (e) {
+      editor.on("contextmenu", function (e) {
         var contextmenu;
 
         if (isNativeOverrideKeyEvent(e)) {
@@ -877,7 +859,9 @@ define(
         }
 
         e.preventDefault();
-        contextmenu = editor.settings.contextmenu || 'link openlink image inserttable | cell row column deletetable';
+        contextmenu =
+          editor.settings.contextmenu ||
+          "link openlink image inserttable | cell row column deletetable";
 
         // Render menu
         if (!menu) {
@@ -886,18 +870,18 @@ define(
           Tools.each(contextmenu.split(/[ ,]/), function (name) {
             var item = editor.menuItems[name];
 
-            if (name == '|') {
+            if (name == "|") {
               item = { text: name };
             }
 
             if (item) {
-              item.shortcut = ''; // Hide shortcuts
+              item.shortcut = ""; // Hide shortcuts
               items.push(item);
             }
           });
 
           for (var i = 0; i < items.length; i++) {
-            if (items[i].text == '|') {
+            if (items[i].text == "|") {
               if (i === 0 || i == items.length - 1) {
                 items.splice(i, 1);
               }
@@ -906,21 +890,20 @@ define(
 
           menu = new Menu({
             items: items,
-            context: 'contextmenu',
-            classes: 'contextmenu'
+            context: "contextmenu",
+            classes: "contextmenu",
           }).renderTo();
 
-          menu.on('hide', function (e) {
+          menu.on("hide", function (e) {
             if (e.control === this) {
               visibleState = false;
             }
           });
 
-          editor.on('remove', function () {
+          editor.on("remove", function () {
             menu.remove();
             menu = null;
           });
-
         } else {
           menu.show();
         }
@@ -939,11 +922,10 @@ define(
       });
 
       return {
-        isContextMenuVisible: isContextMenuVisible
+        isContextMenuVisible: isContextMenuVisible,
       };
     });
-    return function () { };
-  }
-);
-dem('tinymce.plugins.contextmenu.Plugin')();
+    return function () {};
+  });
+  dem("tinymce.plugins.contextmenu.Plugin")();
 })();

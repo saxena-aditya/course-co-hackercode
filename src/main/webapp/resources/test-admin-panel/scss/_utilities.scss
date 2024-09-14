@@ -57,7 +57,7 @@
   @include display-flex;
   @include align-items(stretch);
   @include justify-content(stretch);
-  >.card {
+  > .card {
     width: 100%;
     min-width: 100%;
   }
@@ -182,8 +182,7 @@
   background: transparent;
 }
 
-@each $color,
-$value in $theme-colors {
+@each $color, $value in $theme-colors {
   .bg-inverse-#{$color} {
     @include bg-inverse-variant($value);
   }

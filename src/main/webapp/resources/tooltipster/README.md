@@ -1,5 +1,4 @@
-Tooltipster
-===========
+# Tooltipster
 
 A flexible and extensible jQuery plugin for modern tooltips by Caleb Jacob and Louis Ameline under MIT license.  
 Compatible with Mozilla Firefox, Google Chrome, IE6+ and others.  
@@ -8,8 +7,7 @@ Default css + js files = 10Kb gzipped.
 
 A reminder of options/methods lies below. For detailed documentation, visit http://iamceege.github.io/tooltipster/
 
-Standard options
-----------------
+## Standard options
 
 animation  
 animationDuration  
@@ -40,10 +38,9 @@ trigger
 triggerClose  
 triggerOpen  
 updateAnimation  
-zIndex  
+zIndex
 
-Other options
--------------
+## Other options
 
 (these are available when you use sideTip, the default plugin)
 
@@ -54,10 +51,9 @@ maxWidth
 minIntersection  
 minWidth  
 side  
-viewportAware  
+viewportAware
 
-Instance methods
-----------------
+## Instance methods
 
 close([callback])  
 content([myNewContent])  
@@ -70,20 +66,18 @@ instance()
 on, one, off, triggerHandler  
 open([callback])  
 option(optionName [, optionValue])  
-reposition()   
-status()   
+reposition()  
+status()
 
-Core methods
-------------
+## Core methods
 
 instances([selector || element])  
 instancesLatest()  
 on, one, off, triggerHandler  
 origins()  
-setDefaults({})  
+setDefaults({})
 
-Events
-------
+## Events
 
 after  
 before  
@@ -106,8 +100,7 @@ startcancel
 startend  
 updated
 
-sideTip events
---------------
+## sideTip events
 
 position  
 positionTest  

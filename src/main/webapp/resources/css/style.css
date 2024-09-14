@@ -1,5 +1,7 @@
 body {
-  background: #2ecc71 url("http://38.media.tumblr.com/d23deac40b06633b79520a8552f40b94/tumblr_nb1uhrRrge1st5lhmo1_1280.jpg") no-repeat center center fixed;
+  background: #2ecc71
+    url("http://38.media.tumblr.com/d23deac40b06633b79520a8552f40b94/tumblr_nb1uhrRrge1st5lhmo1_1280.jpg")
+    no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -10,7 +12,7 @@ body {
 }
 body::before {
   z-index: -1;
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;

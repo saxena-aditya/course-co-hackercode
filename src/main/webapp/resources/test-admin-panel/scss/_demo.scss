@@ -2,15 +2,15 @@
 
 // Add spacing to Boostrap components for demo purpose
 .template-demo {
-  >.btn {
+  > .btn {
     @extend .mt-2;
     @extend .mr-2;
   }
-  >.btn-toolbar {
+  > .btn-toolbar {
     @extend .mt-2;
     @extend .mr-2;
   }
-  >.btn-group {
+  > .btn-group {
     @extend .mt-2;
     @extend .mr-2;
     .btn {
@@ -23,12 +23,12 @@
   .circle-progress {
     @extend .mt-2;
   }
-  >h2,
-  >h3,
-  >h4,
-  >h5,
-  >h6,
-  >h1 {
+  > h2,
+  > h3,
+  > h4,
+  > h5,
+  > h6,
+  > h1 {
     border-top: 1px solid $border-color;
     padding: 0.5rem 0 0;
   }
@@ -56,7 +56,7 @@
     }
   }
   .editable-form {
-    >.form-group {
+    > .form-group {
       border-bottom: 1px solid $border-color;
       padding-bottom: 0.8rem;
       margin-bottom: 0.8rem;
@@ -93,9 +93,9 @@
 }
 
 .purchace-popup {
-  >div {
+  > div {
     @extend .grid-margin;
-    >span {
+    > span {
       background: rgba(228, 228, 228, 0.46);
       padding: 15px 20px;
       @include border-radius(3px);
@@ -112,7 +112,9 @@
         &.purchase-button {
           background-color: #d209fa;
           @include filter-gradient(#d209fa, #4f81d4, horizontal);
-          @include background-image(linear-gradient(left, #d209fa 1%, #4f81d4 100%));
+          @include background-image(
+            linear-gradient(left, #d209fa 1%, #4f81d4 100%)
+          );
           color: $white;
           border: none;
           line-height: 1;

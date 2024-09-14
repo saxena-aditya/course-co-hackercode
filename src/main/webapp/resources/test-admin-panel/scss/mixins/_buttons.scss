@@ -34,7 +34,7 @@
   }
   &.focus,
   &:focus {
-    box-shadow: 0 0 0 3px rgba($color, .5);
+    box-shadow: 0 0 0 3px rgba($color, 0.5);
   }
   &.disabled,
   &:disabled {
@@ -43,7 +43,7 @@
   }
   &.active,
   &:active,
-  .show>&.dropdown-toggle {
+  .show > &.dropdown-toggle {
     color: $color-hover;
     background-color: $color;
     border-color: $color;
@@ -62,7 +62,7 @@
   }
   &.focus,
   &:focus {
-    box-shadow: 0 0 0 3px rgba($color, .5);
+    box-shadow: 0 0 0 3px rgba($color, 0.5);
   }
   &.disabled,
   &:disabled {
@@ -71,7 +71,7 @@
   }
   &.active,
   &:active,
-  .show>&.dropdown-toggle {
+  .show > &.dropdown-toggle {
     color: $color-hover;
     border-color: $color;
   }

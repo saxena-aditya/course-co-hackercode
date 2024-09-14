@@ -1,211 +1,180 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.table.Plugin","tinymce.core.dom.TreeWalker","tinymce.core.Env","tinymce.core.PluginManager","tinymce.core.util.Tools","tinymce.core.util.VK","tinymce.plugins.table.model.TableGrid","tinymce.plugins.table.selection.CellSelection","tinymce.plugins.table.ui.Dialogs","tinymce.plugins.table.ui.ResizeBars","tinymce.plugins.table.util.Quirks","global!tinymce.util.Tools.resolve","tinymce.plugins.table.util.Utils","tinymce.plugins.table.model.SplitCols","tinymce.core.util.Delay"]
 jsc*/
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.dom.TreeWalker',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.dom.TreeWalker');
-  }
-);
+  define("tinymce.core.dom.TreeWalker", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.dom.TreeWalker");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.Env',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.Env');
-  }
-);
+  define("tinymce.core.Env", ["global!tinymce.util.Tools.resolve"], function (
+    resolve,
+  ) {
+    return resolve("tinymce.Env");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Tools',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Tools');
-  }
-);
+  define("tinymce.core.util.Tools", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Tools");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.VK',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.VK');
-  }
-);
+  define("tinymce.core.util.VK", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.VK");
+  });
 
-/**
- * Utils.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Utils.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * Various utility functions.
- *
- * @class tinymce.table.util.Utils
- * @private
- */
-define(
-  'tinymce.plugins.table.util.Utils',
-  [
-    'tinymce.core.Env'
-  ],
-  function (Env) {
+  /**
+   * Various utility functions.
+   *
+   * @class tinymce.table.util.Utils
+   * @private
+   */
+  define("tinymce.plugins.table.util.Utils", ["tinymce.core.Env"], function (
+    Env,
+  ) {
     var setSpanVal = function (name) {
       return function (td, val) {
         if (td) {
@@ -235,44 +204,40 @@ define(
     }
 
     return {
-      setColSpan: setSpanVal('colSpan'),
-      setRowSpan: setSpanVal('rowspan'),
-      getColSpan: getSpanVal('colSpan'),
-      getRowSpan: getSpanVal('rowSpan'),
+      setColSpan: setSpanVal("colSpan"),
+      setRowSpan: setSpanVal("rowspan"),
+      getColSpan: getSpanVal("colSpan"),
+      getRowSpan: getSpanVal("rowSpan"),
       setSpanVal: function (td, name, value) {
         setSpanVal(name)(td, value);
       },
       getSpanVal: function (td, name) {
         return getSpanVal(name)(td);
       },
-      paddCell: paddCell
+      paddCell: paddCell,
     };
-  }
-);
+  });
 
-/**
- * SplitCols.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * SplitCols.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2016 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * Contains logic for handling splitting of merged rows.
- *
- * @class tinymce.table.model.SplitCols
- * @private
- */
-define(
-  'tinymce.plugins.table.model.SplitCols',
-  [
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.table.util.Utils'
-  ],
-  function (Tools, Utils) {
+  /**
+   * Contains logic for handling splitting of merged rows.
+   *
+   * @class tinymce.table.model.SplitCols
+   * @private
+   */
+  define("tinymce.plugins.table.model.SplitCols", [
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.table.util.Utils",
+  ], function (Tools, Utils) {
     var getCellAt = function (grid, x, y) {
       return grid[y] ? grid[y][x] : null;
     };
@@ -283,7 +248,10 @@ define(
     };
 
     var countHoles = function (grid, x, y, delta) {
-      var y2, cell, count = 0, elm = getCellElmAt(grid, x, y);
+      var y2,
+        cell,
+        count = 0,
+        elm = getCellElmAt(grid, x, y);
 
       for (y2 = y; delta > 0 ? y2 < grid.length : y2 >= 0; y2 += delta) {
         cell = getCellAt(grid, x, y2);
@@ -298,7 +266,8 @@ define(
     };
 
     var findRealElm = function (grid, x, y) {
-      var cell, row = grid[y];
+      var cell,
+        row = grid[y];
 
       for (var x2 = x; x2 < row.length; x2++) {
         cell = row[x2];
@@ -311,14 +280,16 @@ define(
     };
 
     var getRowSplitInfo = function (grid, y) {
-      var cell, result = [], row = grid[y];
+      var cell,
+        result = [],
+        row = grid[y];
 
       for (var x = 0; x < row.length; x++) {
         cell = row[x];
         result.push({
           elm: cell.elm,
           above: countHoles(grid, x, y, -1) - 1,
-          below: countHoles(grid, x, y, 1) - 1
+          below: countHoles(grid, x, y, 1) - 1,
         });
 
         x += Utils.getColSpan(cell.elm) - 1;
@@ -329,7 +300,7 @@ define(
 
     var createCell = function (info, rowSpan) {
       var doc = info.elm.ownerDocument;
-      var newCell = doc.createElement('td');
+      var newCell = doc.createElement("td");
 
       Utils.setColSpan(newCell, Utils.getColSpan(info.elm));
       Utils.setRowSpan(newCell, rowSpan);
@@ -377,7 +348,9 @@ define(
       var cells = [];
 
       Tools.each(rowInfos, function (info, x) {
-        var cell = before ? splitAbove(grid, info, x, y) : splitBelow(grid, info, x, y);
+        var cell = before
+          ? splitAbove(grid, info, x, y)
+          : splitBelow(grid, info, x, y);
         if (cell !== null) {
           cells.push(cells);
         }
@@ -385,50 +358,55 @@ define(
 
       return {
         cells: cells,
-        row: rowElm
+        row: rowElm,
       };
     };
 
     return {
-      splitAt: splitAt
+      splitAt: splitAt,
     };
-  }
-);
+  });
 
-/**
- * TableGrid.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * TableGrid.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class creates a grid out of a table element. This
- * makes it a whole lot easier to handle complex tables with
- * col/row spans.
- *
- * @class tinymce.table.model.TableGrid
- * @private
- */
-define(
-  'tinymce.plugins.table.model.TableGrid',
-  [
-    'tinymce.core.util.Tools',
-    'tinymce.core.Env',
-    'tinymce.plugins.table.util.Utils',
-    'tinymce.plugins.table.model.SplitCols'
-  ],
-  function (Tools, Env, Utils, SplitCols) {
-    var each = Tools.each, getSpanVal = Utils.getSpanVal, setSpanVal = Utils.setSpanVal;
+  /**
+   * This class creates a grid out of a table element. This
+   * makes it a whole lot easier to handle complex tables with
+   * col/row spans.
+   *
+   * @class tinymce.table.model.TableGrid
+   * @private
+   */
+  define("tinymce.plugins.table.model.TableGrid", [
+    "tinymce.core.util.Tools",
+    "tinymce.core.Env",
+    "tinymce.plugins.table.util.Utils",
+    "tinymce.plugins.table.model.SplitCols",
+  ], function (Tools, Env, Utils, SplitCols) {
+    var each = Tools.each,
+      getSpanVal = Utils.getSpanVal,
+      setSpanVal = Utils.setSpanVal;
 
     return function (editor, table, selectedCell) {
-      var grid, gridWidth, startPos, endPos, selection = editor.selection, dom = selection.dom;
+      var grid,
+        gridWidth,
+        startPos,
+        endPos,
+        selection = editor.selection,
+        dom = selection.dom;
 
       function removeCellSelection() {
-        editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
+        editor
+          .$("td[data-mce-selected],th[data-mce-selected]")
+          .removeAttr("data-mce-selected");
       }
 
       function isEditorBody(node) {
@@ -440,7 +418,7 @@ define(
           return [];
         }
 
-        names = Tools.map(names.split(','), function (name) {
+        names = Tools.map(names.split(","), function (name) {
           return name.toLowerCase();
         });
 
@@ -455,14 +433,14 @@ define(
         grid = [];
         gridWidth = 0;
 
-        each(['thead', 'tbody', 'tfoot'], function (part) {
+        each(["thead", "tbody", "tfoot"], function (part) {
           var partElm = getChildrenByName(table, part)[0];
-          var rows = getChildrenByName(partElm, 'tr');
+          var rows = getChildrenByName(partElm, "tr");
 
           each(rows, function (tr, y) {
             y += startY;
 
-            each(getChildrenByName(tr, 'td,th'), function (td, x) {
+            each(getChildrenByName(tr, "td,th"), function (td, x) {
               var x2, y2, rowspan, colspan;
 
               // Skip over existing cells produced by rowspan
@@ -473,8 +451,8 @@ define(
               }
 
               // Get col/rowspan from cell
-              rowspan = getSpanVal(td, 'rowspan');
-              colspan = getSpanVal(td, 'colspan');
+              rowspan = getSpanVal(td, "rowspan");
+              colspan = getSpanVal(td, "colspan");
 
               // Fill out rowspan/colspan right and down
               for (y2 = y; y2 < y + rowspan; y2++) {
@@ -488,7 +466,7 @@ define(
                     real: y2 == y && x2 == x,
                     elm: td,
                     rowspan: rowspan,
-                    colspan: colspan
+                    colspan: colspan,
                   };
                 }
               }
@@ -502,16 +480,16 @@ define(
       }
 
       function fireNewRow(node) {
-        editor.fire('newrow', {
-          node: node
+        editor.fire("newrow", {
+          node: node,
         });
 
         return node;
       }
 
       function fireNewCell(node) {
-        editor.fire('newcell', {
-          node: node
+        editor.fire("newcell", {
+          node: node,
         });
 
         return node;
@@ -519,7 +497,7 @@ define(
 
       function cloneNode(node, children) {
         node = node.cloneNode(children);
-        node.removeAttribute('id');
+        node.removeAttribute("id");
 
         return node;
       }
@@ -548,7 +526,11 @@ define(
       }
 
       function isCellSelected(cell) {
-        return cell && (!!dom.getAttrib(cell.elm, 'data-mce-selected') || cell == selectedCell);
+        return (
+          cell &&
+          (!!dom.getAttrib(cell.elm, "data-mce-selected") ||
+            cell == selectedCell)
+        );
       }
 
       function getSelectedRows() {
@@ -556,7 +538,10 @@ define(
 
         each(table.rows, function (row) {
           each(row.cells, function (cell) {
-            if (dom.getAttrib(cell, 'data-mce-selected') || (selectedCell && cell == selectedCell.elm)) {
+            if (
+              dom.getAttrib(cell, "data-mce-selected") ||
+              (selectedCell && cell == selectedCell.elm)
+            ) {
               rows.push(row);
               return false;
             }
@@ -599,50 +584,64 @@ define(
       }
 
       function cloneCell(cell) {
-        var formatNode, cloneFormats = {};
+        var formatNode,
+          cloneFormats = {};
 
         if (editor.settings.table_clone_elements !== false) {
           cloneFormats = Tools.makeMap(
-            (editor.settings.table_clone_elements || 'strong em b i span font h1 h2 h3 h4 h5 h6 p div').toUpperCase(),
-            /[ ,]/
+            (
+              editor.settings.table_clone_elements ||
+              "strong em b i span font h1 h2 h3 h4 h5 h6 p div"
+            ).toUpperCase(),
+            /[ ,]/,
           );
         }
 
         // Clone formats
-        Tools.walk(cell, function (node) {
-          var curNode;
+        Tools.walk(
+          cell,
+          function (node) {
+            var curNode;
 
-          if (node.nodeType == 3) {
-            each(dom.getParents(node.parentNode, null, cell).reverse(), function (node) {
-              if (!cloneFormats[node.nodeName]) {
-                return;
+            if (node.nodeType == 3) {
+              each(
+                dom.getParents(node.parentNode, null, cell).reverse(),
+                function (node) {
+                  if (!cloneFormats[node.nodeName]) {
+                    return;
+                  }
+
+                  node = cloneNode(node, false);
+
+                  if (!formatNode) {
+                    formatNode = curNode = node;
+                  } else if (curNode) {
+                    curNode.appendChild(node);
+                  }
+
+                  curNode = node;
+                },
+              );
+
+              // Add something to the inner node
+              if (curNode) {
+                curNode.innerHTML =
+                  Env.ie && Env.ie < 10
+                    ? "&nbsp;"
+                    : '<br data-mce-bogus="1" />';
               }
 
-              node = cloneNode(node, false);
-
-              if (!formatNode) {
-                formatNode = curNode = node;
-              } else if (curNode) {
-                curNode.appendChild(node);
-              }
-
-              curNode = node;
-            });
-
-            // Add something to the inner node
-            if (curNode) {
-              curNode.innerHTML = Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />';
+              return false;
             }
-
-            return false;
-          }
-        }, 'childNodes');
+          },
+          "childNodes",
+        );
 
         cell = cloneNode(cell, false);
         fireNewCell(cell);
 
-        setSpanVal(cell, 'rowSpan', 1);
-        setSpanVal(cell, 'colSpan', 1);
+        setSpanVal(cell, "rowSpan", 1);
+        setSpanVal(cell, "colSpan", 1);
 
         if (formatNode) {
           cell.appendChild(formatNode);
@@ -654,17 +653,18 @@ define(
       }
 
       function cleanup() {
-        var rng = dom.createRng(), row;
+        var rng = dom.createRng(),
+          row;
 
         // Empty rows
-        each(dom.select('tr', table), function (tr) {
+        each(dom.select("tr", table), function (tr) {
           if (tr.cells.length === 0) {
             dom.remove(tr);
           }
         });
 
         // Empty table
-        if (dom.select('tr', table).length === 0) {
+        if (dom.select("tr", table).length === 0) {
           rng.setStartBefore(table);
           rng.setEndBefore(table);
           selection.setRng(rng);
@@ -673,7 +673,7 @@ define(
         }
 
         // Empty header/body/footer
-        each(dom.select('thead,tbody,tfoot', table), function (part) {
+        each(dom.select("thead,tbody,tfoot", table), function (part) {
           if (part.rows.length === 0) {
             dom.remove(part);
           }
@@ -687,7 +687,10 @@ define(
           // Restore the selection to the closest table position
           row = grid[Math.min(grid.length - 1, startPos.y)];
           if (row) {
-            selection.select(row[Math.min(row.length - 1, startPos.x)].elm, true);
+            selection.select(
+              row[Math.min(row.length - 1, startPos.x)].elm,
+              true,
+            );
             selection.collapse(true);
           }
         }
@@ -698,7 +701,7 @@ define(
 
         tr = grid[y][x].elm.parentNode;
         for (r = 1; r <= rows; r++) {
-          tr = dom.getNext(tr, 'tr');
+          tr = dom.getNext(tr, "tr");
 
           if (tr) {
             // Loop left to find real cell
@@ -732,12 +735,12 @@ define(
 
             if (isCellSelected(cell)) {
               cell = cell.elm;
-              colSpan = getSpanVal(cell, 'colspan');
-              rowSpan = getSpanVal(cell, 'rowspan');
+              colSpan = getSpanVal(cell, "colspan");
+              rowSpan = getSpanVal(cell, "rowspan");
 
               if (colSpan > 1 || rowSpan > 1) {
-                setSpanVal(cell, 'rowSpan', 1);
-                setSpanVal(cell, 'colSpan', 1);
+                setSpanVal(cell, "rowSpan", 1);
+                setSpanVal(cell, "colSpan", 1);
 
                 // Insert cells right
                 for (i = 0; i < colSpan - 1; i++) {
@@ -813,7 +816,11 @@ define(
         }
 
         for (var x = startX + 1; x <= endX; x++) {
-          var allCells = findItemsOutsideOfRange(getColumn(grid, x), startY, endY);
+          var allCells = findItemsOutsideOfRange(
+            getColumn(grid, x),
+            startY,
+            endY,
+          );
           var fakeCells = getFakeCells(allCells);
 
           if (allCells.length === fakeCells.length) {
@@ -829,7 +836,19 @@ define(
       }
 
       function merge(cell, cols, rows) {
-        var pos, startX, startY, endX, endY, x, y, startCell, endCell, children, count, reducedRows, reducedCols;
+        var pos,
+          startX,
+          startY,
+          endX,
+          endY,
+          x,
+          y,
+          startCell,
+          endCell,
+          children,
+          count,
+          reducedRows,
+          reducedCols;
 
         // Use specified cell and cols/rows
         if (cell) {
@@ -878,8 +897,8 @@ define(
 
           // Set row/col span to start cell
           startCell = getCell(startX, startY).elm;
-          var colSpan = (endX - startX - reducedCols) + 1;
-          var rowSpan = (endY - startY - reducedRows) + 1;
+          var colSpan = endX - startX - reducedCols + 1;
+          var rowSpan = endY - startY - reducedRows + 1;
 
           // All cells in table selected then just make it a table with one cell
           if (colSpan === gridWidth && rowSpan === grid.length) {
@@ -892,8 +911,8 @@ define(
             rowSpan = 1;
           }
 
-          setSpanVal(startCell, 'colSpan', colSpan);
-          setSpanVal(startCell, 'rowSpan', rowSpan);
+          setSpanVal(startCell, "colSpan", colSpan);
+          setSpanVal(startCell, "rowSpan", rowSpan);
 
           // Remove other cells and add it's contents to the start cell
           for (y = startY; y <= endY; y++) {
@@ -918,7 +937,10 @@ define(
                   children = Tools.grep(startCell.childNodes);
                   count = 0;
                   each(children, function (node) {
-                    if (node.nodeName == 'BR' && count++ < children.length - 1) {
+                    if (
+                      node.nodeName == "BR" &&
+                      count++ < children.length - 1
+                    ) {
                       startCell.removeChild(node);
                     }
                   });
@@ -935,7 +957,16 @@ define(
       }
 
       function insertRow(before) {
-        var posY, cell, lastCell, x, rowElm, newRow, newCell, otherCell, rowSpan, spanValue;
+        var posY,
+          cell,
+          lastCell,
+          x,
+          rowElm,
+          newRow,
+          newCell,
+          otherCell,
+          rowSpan,
+          spanValue;
 
         // Find first/last row
         each(grid, function (row, y) {
@@ -969,22 +1000,22 @@ define(
           }
 
           cell = grid[posY][x].elm;
-          spanValue = getSpanVal(cell, 'colspan');
+          spanValue = getSpanVal(cell, "colspan");
 
           if (cell != lastCell) {
             if (!before) {
-              rowSpan = getSpanVal(cell, 'rowspan');
+              rowSpan = getSpanVal(cell, "rowspan");
               if (rowSpan > 1) {
-                setSpanVal(cell, 'rowSpan', rowSpan + 1);
+                setSpanVal(cell, "rowSpan", rowSpan + 1);
                 continue;
               }
             } else {
               // Check if cell above can be expanded
               if (posY > 0 && grid[posY - 1][x]) {
                 otherCell = grid[posY - 1][x].elm;
-                rowSpan = getSpanVal(otherCell, 'rowSpan');
+                rowSpan = getSpanVal(otherCell, "rowSpan");
                 if (rowSpan > 1) {
-                  setSpanVal(otherCell, 'rowSpan', rowSpan + 1);
+                  setSpanVal(otherCell, "rowSpan", rowSpan + 1);
                   continue;
                 }
               }
@@ -992,7 +1023,7 @@ define(
 
             // Insert new cell into new row
             newCell = cloneCell(cell);
-            setSpanVal(newCell, 'colSpan', cell.colSpan);
+            setSpanVal(newCell, "colSpan", cell.colSpan);
 
             newRow.appendChild(newCell);
 
@@ -1045,8 +1076,8 @@ define(
 
           cell = row[posX].elm;
           if (cell != lastCell) {
-            colSpan = getSpanVal(cell, 'colspan');
-            rowSpan = getSpanVal(cell, 'rowspan');
+            colSpan = getSpanVal(cell, "colspan");
+            rowSpan = getSpanVal(cell, "rowspan");
 
             if (colSpan == 1) {
               if (!before) {
@@ -1057,7 +1088,7 @@ define(
                 fillLeftDown(posX, y, rowSpan - 1, colSpan);
               }
             } else {
-              setSpanVal(cell, 'colSpan', cell.colSpan + 1);
+              setSpanVal(cell, "colSpan", cell.colSpan + 1);
             }
 
             lastCell = cell;
@@ -1106,12 +1137,13 @@ define(
           each(row, function (cell, x) {
             if (isCellSelected(cell) && Tools.inArray(cols, x) === -1) {
               each(grid, function (row) {
-                var cell = row[x].elm, colSpan;
+                var cell = row[x].elm,
+                  colSpan;
 
-                colSpan = getSpanVal(cell, 'colSpan');
+                colSpan = getSpanVal(cell, "colSpan");
 
                 if (colSpan > 1) {
-                  setSpanVal(cell, 'colSpan', colSpan - 1);
+                  setSpanVal(cell, "colSpan", colSpan - 1);
                 } else {
                   dom.remove(cell);
                 }
@@ -1133,10 +1165,10 @@ define(
 
           // Move down row spanned cells
           each(tr.cells, function (cell) {
-            var rowSpan = getSpanVal(cell, 'rowSpan');
+            var rowSpan = getSpanVal(cell, "rowSpan");
 
             if (rowSpan > 1) {
-              setSpanVal(cell, 'rowSpan', rowSpan - 1);
+              setSpanVal(cell, "rowSpan", rowSpan - 1);
               pos = getPos(cell);
               fillLeftDown(pos.x, pos.y, 1, 1);
             }
@@ -1150,12 +1182,12 @@ define(
             cell = cell.elm;
 
             if (cell != lastCell) {
-              rowSpan = getSpanVal(cell, 'rowSpan');
+              rowSpan = getSpanVal(cell, "rowSpan");
 
               if (rowSpan <= 1) {
                 dom.remove(cell);
               } else {
-                setSpanVal(cell, 'rowSpan', rowSpan - 1);
+                setSpanVal(cell, "rowSpan", rowSpan - 1);
               }
 
               lastCell = cell;
@@ -1221,15 +1253,20 @@ define(
         });
 
         each(newRows, function (row, y, rows) {
-          var x, cellCount = row.cells.length, cell, colCount = 0, rowSpan, colSpan;
+          var x,
+            cellCount = row.cells.length,
+            cell,
+            colCount = 0,
+            rowSpan,
+            colSpan;
 
           fireNewRow(row);
 
           for (x = 0; x < cellCount; x++) {
             cell = row.cells[x];
 
-            colSpan = getSpanVal(cell, 'colspan');
-            rowSpan = getSpanVal(cell, 'rowspan');
+            colSpan = getSpanVal(cell, "colspan");
+            rowSpan = getSpanVal(cell, "rowspan");
 
             colCount += colSpan;
 
@@ -1239,7 +1276,7 @@ define(
               if (y + rowSpan > rows.length) {
                 // adjust rowspan to the number of available rows
                 rowSpan = rows.length - y;
-                setSpanVal(cell, 'rowSpan', rowSpan);
+                setSpanVal(cell, "rowSpan", rowSpan);
                 rowSpansDueAt.push(rows.length - 1);
               } else {
                 rowSpansDueAt.push(y + rowSpan - 1);
@@ -1264,9 +1301,9 @@ define(
           // Needs less cells
           for (x = gridWidth; x < colCount; x++) {
             cell = row.cells[row.cells.length - 1];
-            colSpan = getSpanVal(cell, 'colspan');
+            colSpan = getSpanVal(cell, "colspan");
             if (colSpan > 1) {
-              setSpanVal(cell, 'colSpan', colSpan - 1);
+              setSpanVal(cell, "colSpan", colSpan - 1);
             } else {
               dom.remove(cell);
             }
@@ -1418,7 +1455,7 @@ define(
           for (y = startY; y <= maxY; y++) {
             for (x = startX; x <= maxX; x++) {
               if (grid[y][x]) {
-                dom.setAttrib(grid[y][x].elm, 'data-mce-selected', '1');
+                dom.setAttrib(grid[y][x].elm, "data-mce-selected", "1");
               }
             }
           }
@@ -1455,16 +1492,22 @@ define(
 
       function splitCols(before) {
         if (startPos) {
-          var splitResult = SplitCols.splitAt(grid, startPos.x, startPos.y, before);
+          var splitResult = SplitCols.splitAt(
+            grid,
+            startPos.x,
+            startPos.y,
+            before,
+          );
           Tools.each(splitResult.cells, fireNewCell);
         }
       }
 
-      table = table || dom.getParent(selection.getStart(true), 'table');
+      table = table || dom.getParent(selection.getStart(true), "table");
 
       buildGrid();
 
-      selectedCell = selectedCell || dom.getParent(selection.getStart(true), 'th,td');
+      selectedCell =
+        selectedCell || dom.getParent(selection.getStart(true), "th,td");
 
       if (selectedCell) {
         startPos = getPos(selectedCell);
@@ -1490,46 +1533,51 @@ define(
         setStartCell: setStartCell,
         setEndCell: setEndCell,
         moveRelIdx: moveRelIdx,
-        refresh: buildGrid
+        refresh: buildGrid,
       });
     };
-  }
-);
+  });
 
-/**
- * CellSelection.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * CellSelection.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class handles table cell selection by faking it using a css class that gets applied
- * to cells when dragging the mouse from one cell to another.
- *
- * @class tinymce.table.selection.CellSelection
- * @private
- */
-define(
-  'tinymce.plugins.table.selection.CellSelection',
-  [
-    'tinymce.plugins.table.model.TableGrid',
-    'tinymce.core.dom.TreeWalker',
-    'tinymce.core.util.Tools'
-  ],
-  function (TableGrid, TreeWalker, Tools) {
+  /**
+   * This class handles table cell selection by faking it using a css class that gets applied
+   * to cells when dragging the mouse from one cell to another.
+   *
+   * @class tinymce.table.selection.CellSelection
+   * @private
+   */
+  define("tinymce.plugins.table.selection.CellSelection", [
+    "tinymce.plugins.table.model.TableGrid",
+    "tinymce.core.dom.TreeWalker",
+    "tinymce.core.util.Tools",
+  ], function (TableGrid, TreeWalker, Tools) {
     return function (editor, selectionChange) {
-      var dom = editor.dom, tableGrid, startCell, startTable, lastMouseOverTarget, hasCellSelection = true, resizing, dragging;
+      var dom = editor.dom,
+        tableGrid,
+        startCell,
+        startTable,
+        lastMouseOverTarget,
+        hasCellSelection = true,
+        resizing,
+        dragging;
 
       function clear(force) {
         // Restore selection possibilities
-        editor.getBody().style.webkitUserSelect = '';
+        editor.getBody().style.webkitUserSelect = "";
 
         if (force || hasCellSelection) {
-          editor.$('td[data-mce-selected],th[data-mce-selected]').removeAttr('data-mce-selected');
+          editor
+            .$("td[data-mce-selected],th[data-mce-selected]")
+            .removeAttr("data-mce-selected");
           hasCellSelection = false;
         }
       }
@@ -1544,11 +1592,13 @@ define(
           return false;
         }
 
-        return table === dom.getParent(cell, 'table');
+        return table === dom.getParent(cell, "table");
       }
 
       function cellSelectionHandler(e) {
-        var sel, target = e.target, currentCell;
+        var sel,
+          target = e.target,
+          currentCell;
 
         if (resizing || dragging) {
           return;
@@ -1562,10 +1612,10 @@ define(
         lastMouseOverTarget = target;
 
         if (startTable && startCell) {
-          currentCell = dom.getParent(target, 'td,th');
+          currentCell = dom.getParent(target, "td,th");
 
           if (!isCellInTable(startTable, currentCell)) {
-            currentCell = dom.getParent(startTable, 'td,th');
+            currentCell = dom.getParent(startTable, "td,th");
           }
 
           // Selection inside first cell is normal until we have expanted
@@ -1580,7 +1630,7 @@ define(
 
             if (!tableGrid) {
               tableGrid = new TableGrid(editor, startTable, startCell);
-              editor.getBody().style.webkitUserSelect = 'none';
+              editor.getBody().style.webkitUserSelect = "none";
             }
 
             tableGrid.setEndCell(currentCell);
@@ -1602,31 +1652,40 @@ define(
         }
       }
 
-      editor.on('SelectionChange', function (e) {
-        if (hasCellSelection) {
-          e.stopImmediatePropagation();
-        }
-      }, true);
+      editor.on(
+        "SelectionChange",
+        function (e) {
+          if (hasCellSelection) {
+            e.stopImmediatePropagation();
+          }
+        },
+        true,
+      );
 
       // Add cell selection logic
-      editor.on('MouseDown', function (e) {
+      editor.on("MouseDown", function (e) {
         if (e.button != 2 && !resizing && !dragging) {
           clear();
 
-          startCell = dom.getParent(e.target, 'td,th');
-          startTable = dom.getParent(startCell, 'table');
+          startCell = dom.getParent(e.target, "td,th");
+          startTable = dom.getParent(startCell, "table");
         }
       });
 
-      editor.on('mouseover', cellSelectionHandler);
+      editor.on("mouseover", cellSelectionHandler);
 
-      editor.on('remove', function () {
-        dom.unbind(editor.getDoc(), 'mouseover', cellSelectionHandler);
+      editor.on("remove", function () {
+        dom.unbind(editor.getDoc(), "mouseover", cellSelectionHandler);
         clear();
       });
 
-      editor.on('MouseUp', function () {
-        var rng, sel = editor.selection, selectedCells, walker, node, lastNode;
+      editor.on("MouseUp", function () {
+        var rng,
+          sel = editor.selection,
+          selectedCells,
+          walker,
+          node,
+          lastNode;
 
         function setPoint(node, start) {
           var walker = new TreeWalker(node, node);
@@ -1644,7 +1703,7 @@ define(
             }
 
             // BR element
-            if (node.nodeName == 'BR') {
+            if (node.nodeName == "BR") {
               if (start) {
                 rng.setStartBefore(node);
               } else {
@@ -1653,17 +1712,19 @@ define(
 
               return;
             }
-          } while ((node = (start ? walker.next() : walker.prev())));
+          } while ((node = start ? walker.next() : walker.prev()));
         }
 
         // Move selection to startCell
         if (startCell) {
           if (tableGrid) {
-            editor.getBody().style.webkitUserSelect = '';
+            editor.getBody().style.webkitUserSelect = "";
           }
 
           // Try to expand text selection as much as we can only Gecko supports cell selection
-          selectedCells = dom.select('td[data-mce-selected],th[data-mce-selected]');
+          selectedCells = dom.select(
+            "td[data-mce-selected],th[data-mce-selected]",
+          );
           if (selectedCells.length > 0) {
             rng = dom.createRng();
             node = selectedCells[0];
@@ -1671,11 +1732,14 @@ define(
             rng.setEndAfter(node);
 
             setPoint(node, 1);
-            walker = new TreeWalker(node, dom.getParent(selectedCells[0], 'table'));
+            walker = new TreeWalker(
+              node,
+              dom.getParent(selectedCells[0], "table"),
+            );
 
             do {
-              if (node.nodeName == 'TD' || node.nodeName == 'TH') {
-                if (!dom.getAttrib(node, 'data-mce-selected')) {
+              if (node.nodeName == "TD" || node.nodeName == "TH") {
+                if (!dom.getAttrib(node, "data-mce-selected")) {
                   break;
                 }
 
@@ -1693,56 +1757,52 @@ define(
         }
       });
 
-      editor.on('KeyUp Drop SetContent', function (e) {
-        clear(e.type == 'setcontent');
+      editor.on("KeyUp Drop SetContent", function (e) {
+        clear(e.type == "setcontent");
         endSelection();
         resizing = false;
       });
 
-      editor.on('ObjectResizeStart ObjectResized', function (e) {
-        resizing = e.type != 'objectresized';
+      editor.on("ObjectResizeStart ObjectResized", function (e) {
+        resizing = e.type != "objectresized";
       });
 
-      editor.on('dragstart', function () {
+      editor.on("dragstart", function () {
         dragging = true;
       });
 
-      editor.on('drop dragend', function () {
+      editor.on("drop dragend", function () {
         dragging = false;
       });
 
       return {
-        clear: clear
+        clear: clear,
       };
     };
-  }
-);
+  });
 
-/**
- * Dialogs.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Dialogs.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/*eslint dot-notation:0*/
+  /*eslint dot-notation:0*/
 
-/**
- * ...
- *
- * @class tinymce.table.ui.Dialogs
- * @private
- */
-define(
-  'tinymce.plugins.table.ui.Dialogs',
-  [
-    'tinymce.core.util.Tools',
-    'tinymce.core.Env'
-  ],
-  function (Tools, Env) {
+  /**
+   * ...
+   *
+   * @class tinymce.table.ui.Dialogs
+   * @private
+   */
+  define("tinymce.plugins.table.ui.Dialogs", [
+    "tinymce.core.util.Tools",
+    "tinymce.core.Env",
+  ], function (Tools, Env) {
     var each = Tools.each;
 
     return function (editor) {
@@ -1758,9 +1818,9 @@ define(
             colorPickerCallback.call(
               editor,
               function (value) {
-                self.value(value).fire('change');
+                self.value(value).fire("change");
               },
-              self.value()
+              self.value(),
             );
           };
         }
@@ -1768,52 +1828,56 @@ define(
 
       function createStyleForm(dom) {
         return {
-          title: 'Advanced',
-          type: 'form',
+          title: "Advanced",
+          type: "form",
           defaults: {
             onchange: function () {
-              updateStyle(dom, this.parents().reverse()[0], this.name() == "style");
-            }
+              updateStyle(
+                dom,
+                this.parents().reverse()[0],
+                this.name() == "style",
+              );
+            },
           },
           items: [
             {
-              label: 'Style',
-              name: 'style',
-              type: 'textbox'
+              label: "Style",
+              name: "style",
+              type: "textbox",
             },
 
             {
-              type: 'form',
+              type: "form",
               padding: 0,
               formItemDefaults: {
-                layout: 'grid',
-                alignH: ['start', 'right']
+                layout: "grid",
+                alignH: ["start", "right"],
               },
               defaults: {
-                size: 7
+                size: 7,
               },
               items: [
                 {
-                  label: 'Border color',
-                  type: 'colorbox',
-                  name: 'borderColor',
-                  onaction: createColorPickAction()
+                  label: "Border color",
+                  type: "colorbox",
+                  name: "borderColor",
+                  onaction: createColorPickAction(),
                 },
 
                 {
-                  label: 'Background color',
-                  type: 'colorbox',
-                  name: 'backgroundColor',
-                  onaction: createColorPickAction()
-                }
-              ]
-            }
-          ]
+                  label: "Background color",
+                  type: "colorbox",
+                  name: "backgroundColor",
+                  onaction: createColorPickAction(),
+                },
+              ],
+            },
+          ],
         };
       }
 
       function removePxSuffix(size) {
-        return size ? size.replace(/px$/, '') : "";
+        return size ? size.replace(/px$/, "") : "";
       }
 
       function addSizeSuffix(size) {
@@ -1825,14 +1889,14 @@ define(
       }
 
       function unApplyAlign(elm) {
-        each('left center right'.split(' '), function (name) {
-          editor.formatter.remove('align' + name, {}, elm);
+        each("left center right".split(" "), function (name) {
+          editor.formatter.remove("align" + name, {}, elm);
         });
       }
 
       function unApplyVAlign(elm) {
-        each('top middle bottom'.split(' '), function (name) {
-          editor.formatter.remove('valign' + name, {}, elm);
+        each("top middle bottom".split(" "), function (name) {
+          editor.formatter.remove("valign" + name, {}, elm);
         });
       }
 
@@ -1867,18 +1931,26 @@ define(
         var css = dom.parseStyle(data.style);
 
         if (isStyleCtrl) {
-          win.find('#borderColor').value(css["border-color"] || '')[0].fire('change');
-          win.find('#backgroundColor').value(css["background-color"] || '')[0].fire('change');
+          win
+            .find("#borderColor")
+            .value(css["border-color"] || "")[0]
+            .fire("change");
+          win
+            .find("#backgroundColor")
+            .value(css["background-color"] || "")[0]
+            .fire("change");
         } else {
           css["border-color"] = data.borderColor;
           css["background-color"] = data.backgroundColor;
         }
 
-        win.find('#style').value(dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
+        win
+          .find("#style")
+          .value(dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
       }
 
       function appendStylesToData(dom, data, elm) {
-        var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
+        var css = dom.parseStyle(dom.getAttrib(elm, "style"));
 
         if (css["border-color"]) {
           data.borderColor = css["border-color"];
@@ -1892,13 +1964,17 @@ define(
       }
 
       function mergeStyles(dom, elm, styles) {
-        var css = dom.parseStyle(dom.getAttrib(elm, 'style'));
+        var css = dom.parseStyle(dom.getAttrib(elm, "style"));
 
         each(styles, function (style) {
           css[style.name] = style.value;
         });
 
-        dom.setAttrib(elm, 'style', dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))));
+        dom.setAttrib(
+          elm,
+          "style",
+          dom.serializeStyle(dom.parseStyle(dom.serializeStyle(css))),
+        );
       }
 
       self.tableProps = function () {
@@ -1906,10 +1982,16 @@ define(
       };
 
       self.table = function (isProps) {
-        var dom = editor.dom, tableElm, colsCtrl, rowsCtrl, classListCtrl, data = {}, generalTableForm, stylesToMerge;
+        var dom = editor.dom,
+          tableElm,
+          colsCtrl,
+          rowsCtrl,
+          classListCtrl,
+          data = {},
+          generalTableForm,
+          stylesToMerge;
 
         function onSubmitTableForm() {
-
           //Explore the layers of the table till we find the first layer of tds or ths
           function styleTDTH(elm, name, value) {
             if (elm.tagName === "TD" || elm.tagName === "TH") {
@@ -1934,61 +2016,76 @@ define(
 
           editor.undoManager.transact(function () {
             if (!tableElm) {
-              tableElm = editor.plugins.table.insertTable(data.cols || 1, data.rows || 1);
+              tableElm = editor.plugins.table.insertTable(
+                data.cols || 1,
+                data.rows || 1,
+              );
             }
 
             editor.dom.setAttribs(tableElm, {
               style: data.style,
-              'class': data['class']
+              class: data["class"],
             });
 
             if (editor.settings.table_style_by_css) {
               stylesToMerge = [];
-              stylesToMerge.push({ name: 'border', value: data.border });
-              stylesToMerge.push({ name: 'border-spacing', value: addSizeSuffix(data.cellspacing) });
+              stylesToMerge.push({ name: "border", value: data.border });
+              stylesToMerge.push({
+                name: "border-spacing",
+                value: addSizeSuffix(data.cellspacing),
+              });
               mergeStyles(dom, tableElm, stylesToMerge);
               dom.setAttribs(tableElm, {
-                'data-mce-border-color': data.borderColor,
-                'data-mce-cell-padding': data.cellpadding,
-                'data-mce-border': data.border
+                "data-mce-border-color": data.borderColor,
+                "data-mce-cell-padding": data.cellpadding,
+                "data-mce-border": data.border,
               });
               if (tableElm.children) {
                 for (var i = 0; i < tableElm.children.length; i++) {
-                  styleTDTH(tableElm.children[i], 'border', data.border);
-                  styleTDTH(tableElm.children[i], 'padding', addSizeSuffix(data.cellpadding));
+                  styleTDTH(tableElm.children[i], "border", data.border);
+                  styleTDTH(
+                    tableElm.children[i],
+                    "padding",
+                    addSizeSuffix(data.cellpadding),
+                  );
                 }
               }
             } else {
               editor.dom.setAttribs(tableElm, {
                 border: data.border,
                 cellpadding: data.cellpadding,
-                cellspacing: data.cellspacing
+                cellspacing: data.cellspacing,
               });
             }
 
-            if (dom.getAttrib(tableElm, 'width') && !editor.settings.table_style_by_css) {
-              dom.setAttrib(tableElm, 'width', removePxSuffix(data.width));
+            if (
+              dom.getAttrib(tableElm, "width") &&
+              !editor.settings.table_style_by_css
+            ) {
+              dom.setAttrib(tableElm, "width", removePxSuffix(data.width));
             } else {
-              dom.setStyle(tableElm, 'width', addSizeSuffix(data.width));
+              dom.setStyle(tableElm, "width", addSizeSuffix(data.width));
             }
 
-            dom.setStyle(tableElm, 'height', addSizeSuffix(data.height));
+            dom.setStyle(tableElm, "height", addSizeSuffix(data.height));
 
             // Toggle caption on/off
-            captionElm = dom.select('caption', tableElm)[0];
+            captionElm = dom.select("caption", tableElm)[0];
 
             if (captionElm && !data.caption) {
               dom.remove(captionElm);
             }
 
             if (!captionElm && data.caption) {
-              captionElm = dom.create('caption');
-              captionElm.innerHTML = !Env.ie ? '<br data-mce-bogus="1"/>' : '\u00a0';
+              captionElm = dom.create("caption");
+              captionElm.innerHTML = !Env.ie
+                ? '<br data-mce-bogus="1"/>'
+                : "\u00a0";
               tableElm.insertBefore(captionElm, tableElm.firstChild);
             }
             unApplyAlign(tableElm);
             if (data.align) {
-              editor.formatter.apply('align' + data.align, {}, tableElm);
+              editor.formatter.apply("align" + data.align, {}, tableElm);
             }
 
             editor.focus();
@@ -1997,10 +2094,10 @@ define(
         }
 
         function getTDTHOverallStyle(elm, name) {
-          var cells = editor.dom.select("td,th", elm), firstChildStyle;
+          var cells = editor.dom.select("td,th", elm),
+            firstChildStyle;
 
           function checkChildren(firstChildStyle, elms) {
-
             for (var i = 0; i < elms.length; i++) {
               var currentStyle = dom.getStyle(elms[i], name);
               if (typeof firstChildStyle === "undefined") {
@@ -2012,7 +2109,6 @@ define(
             }
 
             return firstChildStyle;
-
           }
 
           firstChildStyle = checkChildren(firstChildStyle, cells);
@@ -2021,105 +2117,126 @@ define(
         }
 
         if (isProps === true) {
-          tableElm = dom.getParent(editor.selection.getStart(), 'table');
+          tableElm = dom.getParent(editor.selection.getStart(), "table");
 
           if (tableElm) {
             data = {
-              width: removePxSuffix(dom.getStyle(tableElm, 'width') || dom.getAttrib(tableElm, 'width')),
-              height: removePxSuffix(dom.getStyle(tableElm, 'height') || dom.getAttrib(tableElm, 'height')),
-              cellspacing: removePxSuffix(dom.getStyle(tableElm, 'border-spacing') ||
-                dom.getAttrib(tableElm, 'cellspacing')),
-              cellpadding: dom.getAttrib(tableElm, 'data-mce-cell-padding') || dom.getAttrib(tableElm, 'cellpadding') ||
-              getTDTHOverallStyle(tableElm, 'padding'),
-              border: dom.getAttrib(tableElm, 'data-mce-border') || dom.getAttrib(tableElm, 'border') ||
-              getTDTHOverallStyle(tableElm, 'border'),
-              borderColor: dom.getAttrib(tableElm, 'data-mce-border-color'),
-              caption: !!dom.select('caption', tableElm)[0],
-              'class': dom.getAttrib(tableElm, 'class')
+              width: removePxSuffix(
+                dom.getStyle(tableElm, "width") ||
+                  dom.getAttrib(tableElm, "width"),
+              ),
+              height: removePxSuffix(
+                dom.getStyle(tableElm, "height") ||
+                  dom.getAttrib(tableElm, "height"),
+              ),
+              cellspacing: removePxSuffix(
+                dom.getStyle(tableElm, "border-spacing") ||
+                  dom.getAttrib(tableElm, "cellspacing"),
+              ),
+              cellpadding:
+                dom.getAttrib(tableElm, "data-mce-cell-padding") ||
+                dom.getAttrib(tableElm, "cellpadding") ||
+                getTDTHOverallStyle(tableElm, "padding"),
+              border:
+                dom.getAttrib(tableElm, "data-mce-border") ||
+                dom.getAttrib(tableElm, "border") ||
+                getTDTHOverallStyle(tableElm, "border"),
+              borderColor: dom.getAttrib(tableElm, "data-mce-border-color"),
+              caption: !!dom.select("caption", tableElm)[0],
+              class: dom.getAttrib(tableElm, "class"),
             };
 
-            each('left center right'.split(' '), function (name) {
-              if (editor.formatter.matchNode(tableElm, 'align' + name)) {
+            each("left center right".split(" "), function (name) {
+              if (editor.formatter.matchNode(tableElm, "align" + name)) {
                 data.align = name;
               }
             });
           }
         } else {
-          colsCtrl = { label: 'Cols', name: 'cols' };
-          rowsCtrl = { label: 'Rows', name: 'rows' };
+          colsCtrl = { label: "Cols", name: "cols" };
+          rowsCtrl = { label: "Rows", name: "rows" };
         }
 
         if (editor.settings.table_class_list) {
           if (data["class"]) {
-            data["class"] = data["class"].replace(/\s*mce\-item\-table\s*/g, '');
+            data["class"] = data["class"].replace(
+              /\s*mce\-item\-table\s*/g,
+              "",
+            );
           }
 
           classListCtrl = {
-            name: 'class',
-            type: 'listbox',
-            label: 'Class',
+            name: "class",
+            type: "listbox",
+            label: "Class",
             values: buildListItems(
               editor.settings.table_class_list,
               function (item) {
                 if (item.value) {
                   item.textStyle = function () {
-                    return editor.formatter.getCssText({ block: 'table', classes: [item.value] });
+                    return editor.formatter.getCssText({
+                      block: "table",
+                      classes: [item.value],
+                    });
                   };
                 }
-              }
-            )
+              },
+            ),
           };
         }
 
         generalTableForm = {
-          type: 'form',
-          layout: 'flex',
-          direction: 'column',
-          labelGapCalc: 'children',
+          type: "form",
+          layout: "flex",
+          direction: "column",
+          labelGapCalc: "children",
           padding: 0,
           items: [
             {
-              type: 'form',
+              type: "form",
               labelGapCalc: false,
               padding: 0,
-              layout: 'grid',
+              layout: "grid",
               columns: 2,
               defaults: {
-                type: 'textbox',
-                maxWidth: 50
+                type: "textbox",
+                maxWidth: 50,
               },
-              items: (editor.settings.table_appearance_options !== false) ? [
-                colsCtrl,
-                rowsCtrl,
-                { label: 'Width', name: 'width' },
-                { label: 'Height', name: 'height' },
-                { label: 'Cell spacing', name: 'cellspacing' },
-                { label: 'Cell padding', name: 'cellpadding' },
-                { label: 'Border', name: 'border' },
-                { label: 'Caption', name: 'caption', type: 'checkbox' }
-              ] : [
-                colsCtrl,
-                rowsCtrl,
-                  { label: 'Width', name: 'width' },
-                  { label: 'Height', name: 'height' }
-              ]
+              items:
+                editor.settings.table_appearance_options !== false
+                  ? [
+                      colsCtrl,
+                      rowsCtrl,
+                      { label: "Width", name: "width" },
+                      { label: "Height", name: "height" },
+                      { label: "Cell spacing", name: "cellspacing" },
+                      { label: "Cell padding", name: "cellpadding" },
+                      { label: "Border", name: "border" },
+                      { label: "Caption", name: "caption", type: "checkbox" },
+                    ]
+                  : [
+                      colsCtrl,
+                      rowsCtrl,
+                      { label: "Width", name: "width" },
+                      { label: "Height", name: "height" },
+                    ],
             },
 
             {
-              label: 'Alignment',
-              name: 'align',
-              type: 'listbox',
-              text: 'None',
+              label: "Alignment",
+              name: "align",
+              type: "listbox",
+              text: "None",
               values: [
-                { text: 'None', value: '' },
-                { text: 'Left', value: 'left' },
-                { text: 'Center', value: 'center' },
-                { text: 'Right', value: 'right' }
-              ]
+                { text: "None", value: "" },
+                { text: "Left", value: "left" },
+                { text: "Center", value: "center" },
+                { text: "Right", value: "right" },
+              ],
             },
 
-            classListCtrl
-          ]
+            classListCtrl,
+          ],
         };
 
         if (editor.settings.table_advtab !== false) {
@@ -2128,24 +2245,24 @@ define(
           editor.windowManager.open({
             title: "Table properties",
             data: data,
-            bodyType: 'tabpanel',
+            bodyType: "tabpanel",
             body: [
               {
-                title: 'General',
-                type: 'form',
-                items: generalTableForm
+                title: "General",
+                type: "form",
+                items: generalTableForm,
               },
-              createStyleForm(dom)
+              createStyleForm(dom),
             ],
 
-            onsubmit: onSubmitTableForm
+            onsubmit: onSubmitTableForm,
           });
         } else {
           editor.windowManager.open({
             title: "Table properties",
             data: data,
             body: generalTableForm,
-            onsubmit: onSubmitTableForm
+            onsubmit: onSubmitTableForm,
           });
         }
       };
@@ -2154,8 +2271,20 @@ define(
         editor.windowManager.open({
           title: "Merge cells",
           body: [
-            { label: 'Cols', name: 'cols', type: 'textbox', value: '1', size: 10 },
-            { label: 'Rows', name: 'rows', type: 'textbox', value: '1', size: 10 }
+            {
+              label: "Cols",
+              name: "cols",
+              type: "textbox",
+              value: "1",
+              size: 10,
+            },
+            {
+              label: "Rows",
+              name: "rows",
+              type: "textbox",
+              value: "1",
+              size: 10,
+            },
           ],
           onsubmit: function () {
             var data = this.toJSON();
@@ -2163,12 +2292,16 @@ define(
             editor.undoManager.transact(function () {
               grid.merge(cell, data.cols, data.rows);
             });
-          }
+          },
         });
       };
 
       self.cell = function () {
-        var dom = editor.dom, cellElm, data, classListCtrl, cells = [];
+        var dom = editor.dom,
+          cellElm,
+          data,
+          classListCtrl,
+          cells = [];
 
         function setAttrib(elm, name, value) {
           if (cells.length === 1 || value) {
@@ -2188,11 +2321,11 @@ define(
 
           editor.undoManager.transact(function () {
             each(cells, function (cellElm) {
-              setAttrib(cellElm, 'scope', data.scope);
-              setAttrib(cellElm, 'style', data.style);
-              setAttrib(cellElm, 'class', data['class']);
-              setStyle(cellElm, 'width', addSizeSuffix(data.width));
-              setStyle(cellElm, 'height', addSizeSuffix(data.height));
+              setAttrib(cellElm, "scope", data.scope);
+              setAttrib(cellElm, "style", data.style);
+              setAttrib(cellElm, "class", data["class"]);
+              setStyle(cellElm, "width", addSizeSuffix(data.width));
+              setStyle(cellElm, "height", addSizeSuffix(data.height));
 
               // Switch cell type
               if (data.type && cellElm.nodeName.toLowerCase() !== data.type) {
@@ -2207,12 +2340,12 @@ define(
 
               // Apply alignment
               if (data.align) {
-                editor.formatter.apply('align' + data.align, {}, cellElm);
+                editor.formatter.apply("align" + data.align, {}, cellElm);
               }
 
               // Apply vertical alignment
               if (data.valign) {
-                editor.formatter.apply('valign' + data.valign, {}, cellElm);
+                editor.formatter.apply("valign" + data.valign, {}, cellElm);
               }
             });
 
@@ -2221,8 +2354,10 @@ define(
         }
 
         // Get selected cells or the current cell
-        cells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
-        cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
+        cells = editor.dom.select(
+          "td[data-mce-selected],th[data-mce-selected]",
+        );
+        cellElm = editor.dom.getParent(editor.selection.getStart(), "td,th");
         if (!cells.length && cellElm) {
           cells.push(cellElm);
         }
@@ -2236,32 +2371,37 @@ define(
 
         if (cells.length > 1) {
           data = {
-            width: '',
-            height: '',
-            scope: '',
-            'class': '',
-            align: '',
-            style: '',
-            type: cellElm.nodeName.toLowerCase()
+            width: "",
+            height: "",
+            scope: "",
+            class: "",
+            align: "",
+            style: "",
+            type: cellElm.nodeName.toLowerCase(),
           };
         } else {
           data = {
-            width: removePxSuffix(dom.getStyle(cellElm, 'width') || dom.getAttrib(cellElm, 'width')),
-            height: removePxSuffix(dom.getStyle(cellElm, 'height') || dom.getAttrib(cellElm, 'height')),
-            scope: dom.getAttrib(cellElm, 'scope'),
-            'class': dom.getAttrib(cellElm, 'class')
+            width: removePxSuffix(
+              dom.getStyle(cellElm, "width") || dom.getAttrib(cellElm, "width"),
+            ),
+            height: removePxSuffix(
+              dom.getStyle(cellElm, "height") ||
+                dom.getAttrib(cellElm, "height"),
+            ),
+            scope: dom.getAttrib(cellElm, "scope"),
+            class: dom.getAttrib(cellElm, "class"),
           };
 
           data.type = cellElm.nodeName.toLowerCase();
 
-          each('left center right'.split(' '), function (name) {
-            if (editor.formatter.matchNode(cellElm, 'align' + name)) {
+          each("left center right".split(" "), function (name) {
+            if (editor.formatter.matchNode(cellElm, "align" + name)) {
               data.align = name;
             }
           });
 
-          each('top middle bottom'.split(' '), function (name) {
-            if (editor.formatter.matchNode(cellElm, 'valign' + name)) {
+          each("top middle bottom".split(" "), function (name) {
+            if (editor.formatter.matchNode(cellElm, "valign" + name)) {
               data.valign = name;
             }
           });
@@ -2271,133 +2411,143 @@ define(
 
         if (editor.settings.table_cell_class_list) {
           classListCtrl = {
-            name: 'class',
-            type: 'listbox',
-            label: 'Class',
+            name: "class",
+            type: "listbox",
+            label: "Class",
             values: buildListItems(
               editor.settings.table_cell_class_list,
               function (item) {
                 if (item.value) {
                   item.textStyle = function () {
-                    return editor.formatter.getCssText({ block: 'td', classes: [item.value] });
+                    return editor.formatter.getCssText({
+                      block: "td",
+                      classes: [item.value],
+                    });
                   };
                 }
-              }
-            )
+              },
+            ),
           };
         }
 
         var generalCellForm = {
-          type: 'form',
-          layout: 'flex',
-          direction: 'column',
-          labelGapCalc: 'children',
+          type: "form",
+          layout: "flex",
+          direction: "column",
+          labelGapCalc: "children",
           padding: 0,
           items: [
             {
-              type: 'form',
-              layout: 'grid',
+              type: "form",
+              layout: "grid",
               columns: 2,
               labelGapCalc: false,
               padding: 0,
               defaults: {
-                type: 'textbox',
-                maxWidth: 50
+                type: "textbox",
+                maxWidth: 50,
               },
               items: [
-                { label: 'Width', name: 'width' },
-                { label: 'Height', name: 'height' },
+                { label: "Width", name: "width" },
+                { label: "Height", name: "height" },
                 {
-                  label: 'Cell type',
-                  name: 'type',
-                  type: 'listbox',
-                  text: 'None',
+                  label: "Cell type",
+                  name: "type",
+                  type: "listbox",
+                  text: "None",
                   minWidth: 90,
                   maxWidth: null,
                   values: [
-                    { text: 'Cell', value: 'td' },
-                    { text: 'Header cell', value: 'th' }
-                  ]
+                    { text: "Cell", value: "td" },
+                    { text: "Header cell", value: "th" },
+                  ],
                 },
                 {
-                  label: 'Scope',
-                  name: 'scope',
-                  type: 'listbox',
-                  text: 'None',
+                  label: "Scope",
+                  name: "scope",
+                  type: "listbox",
+                  text: "None",
                   minWidth: 90,
                   maxWidth: null,
                   values: [
-                    { text: 'None', value: '' },
-                    { text: 'Row', value: 'row' },
-                    { text: 'Column', value: 'col' },
-                    { text: 'Row group', value: 'rowgroup' },
-                    { text: 'Column group', value: 'colgroup' }
-                  ]
+                    { text: "None", value: "" },
+                    { text: "Row", value: "row" },
+                    { text: "Column", value: "col" },
+                    { text: "Row group", value: "rowgroup" },
+                    { text: "Column group", value: "colgroup" },
+                  ],
                 },
                 {
-                  label: 'H Align',
-                  name: 'align',
-                  type: 'listbox',
-                  text: 'None',
+                  label: "H Align",
+                  name: "align",
+                  type: "listbox",
+                  text: "None",
                   minWidth: 90,
                   maxWidth: null,
                   values: [
-                    { text: 'None', value: '' },
-                    { text: 'Left', value: 'left' },
-                    { text: 'Center', value: 'center' },
-                    { text: 'Right', value: 'right' }
-                  ]
+                    { text: "None", value: "" },
+                    { text: "Left", value: "left" },
+                    { text: "Center", value: "center" },
+                    { text: "Right", value: "right" },
+                  ],
                 },
                 {
-                  label: 'V Align',
-                  name: 'valign',
-                  type: 'listbox',
-                  text: 'None',
+                  label: "V Align",
+                  name: "valign",
+                  type: "listbox",
+                  text: "None",
                   minWidth: 90,
                   maxWidth: null,
                   values: [
-                    { text: 'None', value: '' },
-                    { text: 'Top', value: 'top' },
-                    { text: 'Middle', value: 'middle' },
-                    { text: 'Bottom', value: 'bottom' }
-                  ]
-                }
-              ]
+                    { text: "None", value: "" },
+                    { text: "Top", value: "top" },
+                    { text: "Middle", value: "middle" },
+                    { text: "Bottom", value: "bottom" },
+                  ],
+                },
+              ],
             },
 
-            classListCtrl
-          ]
+            classListCtrl,
+          ],
         };
 
         if (editor.settings.table_cell_advtab !== false) {
           editor.windowManager.open({
             title: "Cell properties",
-            bodyType: 'tabpanel',
+            bodyType: "tabpanel",
             data: data,
             body: [
               {
-                title: 'General',
-                type: 'form',
-                items: generalCellForm
+                title: "General",
+                type: "form",
+                items: generalCellForm,
               },
 
-              createStyleForm(dom)
+              createStyleForm(dom),
             ],
 
-            onsubmit: onSubmitCellForm
+            onsubmit: onSubmitCellForm,
           });
         } else {
           editor.windowManager.open({
             title: "Cell properties",
             data: data,
             body: generalCellForm,
-            onsubmit: onSubmitCellForm
+            onsubmit: onSubmitCellForm,
           });
         }
       };
 
       self.row = function () {
-        var dom = editor.dom, tableElm, cellElm, rowElm, classListCtrl, data, rows = [], generalRowForm;
+        var dom = editor.dom,
+          tableElm,
+          cellElm,
+          rowElm,
+          classListCtrl,
+          data,
+          rows = [],
+          generalRowForm;
 
         function setAttrib(elm, name, value) {
           if (rows.length === 1 || value) {
@@ -2421,13 +2571,13 @@ define(
             var toType = data.type;
 
             each(rows, function (rowElm) {
-              setAttrib(rowElm, 'scope', data.scope);
-              setAttrib(rowElm, 'style', data.style);
-              setAttrib(rowElm, 'class', data['class']);
-              setStyle(rowElm, 'height', addSizeSuffix(data.height));
+              setAttrib(rowElm, "scope", data.scope);
+              setAttrib(rowElm, "style", data.style);
+              setAttrib(rowElm, "class", data["class"]);
+              setStyle(rowElm, "height", addSizeSuffix(data.height));
 
               if (toType !== rowElm.parentNode.nodeName.toLowerCase()) {
-                tableElm = dom.getParent(rowElm, 'table');
+                tableElm = dom.getParent(rowElm, "table");
 
                 oldParentElm = rowElm.parentNode;
                 parentElm = dom.select(toType, tableElm)[0];
@@ -2453,7 +2603,7 @@ define(
               }
 
               if (data.align) {
-                editor.formatter.apply('align' + data.align, {}, rowElm);
+                editor.formatter.apply("align" + data.align, {}, rowElm);
               }
             });
 
@@ -2461,12 +2611,12 @@ define(
           });
         }
 
-        tableElm = editor.dom.getParent(editor.selection.getStart(), 'table');
-        cellElm = editor.dom.getParent(editor.selection.getStart(), 'td,th');
+        tableElm = editor.dom.getParent(editor.selection.getStart(), "table");
+        cellElm = editor.dom.getParent(editor.selection.getStart(), "td,th");
 
         each(tableElm.rows, function (row) {
           each(row.cells, function (cell) {
-            if (dom.getAttrib(cell, 'data-mce-selected') || cell == cellElm) {
+            if (dom.getAttrib(cell, "data-mce-selected") || cell == cellElm) {
               rows.push(row);
               return false;
             }
@@ -2481,23 +2631,25 @@ define(
 
         if (rows.length > 1) {
           data = {
-            height: '',
-            scope: '',
-            'class': '',
-            align: '',
-            type: rowElm.parentNode.nodeName.toLowerCase()
+            height: "",
+            scope: "",
+            class: "",
+            align: "",
+            type: rowElm.parentNode.nodeName.toLowerCase(),
           };
         } else {
           data = {
-            height: removePxSuffix(dom.getStyle(rowElm, 'height') || dom.getAttrib(rowElm, 'height')),
-            scope: dom.getAttrib(rowElm, 'scope'),
-            'class': dom.getAttrib(rowElm, 'class')
+            height: removePxSuffix(
+              dom.getStyle(rowElm, "height") || dom.getAttrib(rowElm, "height"),
+            ),
+            scope: dom.getAttrib(rowElm, "scope"),
+            class: dom.getAttrib(rowElm, "class"),
           };
 
           data.type = rowElm.parentNode.nodeName.toLowerCase();
 
-          each('left center right'.split(' '), function (name) {
-            if (editor.formatter.matchNode(rowElm, 'align' + name)) {
+          each("left center right".split(" "), function (name) {
+            if (editor.formatter.matchNode(rowElm, "align" + name)) {
               data.align = name;
             }
           });
@@ -2507,129 +2659,128 @@ define(
 
         if (editor.settings.table_row_class_list) {
           classListCtrl = {
-            name: 'class',
-            type: 'listbox',
-            label: 'Class',
+            name: "class",
+            type: "listbox",
+            label: "Class",
             values: buildListItems(
               editor.settings.table_row_class_list,
               function (item) {
                 if (item.value) {
                   item.textStyle = function () {
-                    return editor.formatter.getCssText({ block: 'tr', classes: [item.value] });
+                    return editor.formatter.getCssText({
+                      block: "tr",
+                      classes: [item.value],
+                    });
                   };
                 }
-              }
-            )
+              },
+            ),
           };
         }
 
         generalRowForm = {
-          type: 'form',
+          type: "form",
           columns: 2,
           padding: 0,
           defaults: {
-            type: 'textbox'
+            type: "textbox",
           },
           items: [
             {
-              type: 'listbox',
-              name: 'type',
-              label: 'Row type',
-              text: 'Header',
+              type: "listbox",
+              name: "type",
+              label: "Row type",
+              text: "Header",
               maxWidth: null,
               values: [
-                { text: 'Header', value: 'thead' },
-                { text: 'Body', value: 'tbody' },
-                { text: 'Footer', value: 'tfoot' }
-              ]
+                { text: "Header", value: "thead" },
+                { text: "Body", value: "tbody" },
+                { text: "Footer", value: "tfoot" },
+              ],
             },
             {
-              type: 'listbox',
-              name: 'align',
-              label: 'Alignment',
-              text: 'None',
+              type: "listbox",
+              name: "align",
+              label: "Alignment",
+              text: "None",
               maxWidth: null,
               values: [
-                { text: 'None', value: '' },
-                { text: 'Left', value: 'left' },
-                { text: 'Center', value: 'center' },
-                { text: 'Right', value: 'right' }
-              ]
+                { text: "None", value: "" },
+                { text: "Left", value: "left" },
+                { text: "Center", value: "center" },
+                { text: "Right", value: "right" },
+              ],
             },
-            { label: 'Height', name: 'height' },
-            classListCtrl
-          ]
+            { label: "Height", name: "height" },
+            classListCtrl,
+          ],
         };
 
         if (editor.settings.table_row_advtab !== false) {
           editor.windowManager.open({
             title: "Row properties",
             data: data,
-            bodyType: 'tabpanel',
+            bodyType: "tabpanel",
             body: [
               {
-                title: 'General',
-                type: 'form',
-                items: generalRowForm
+                title: "General",
+                type: "form",
+                items: generalRowForm,
               },
-              createStyleForm(dom)
+              createStyleForm(dom),
             ],
 
-            onsubmit: onSubmitRowForm
+            onsubmit: onSubmitRowForm,
           });
         } else {
           editor.windowManager.open({
             title: "Row properties",
             data: data,
             body: generalRowForm,
-            onsubmit: onSubmitRowForm
+            onsubmit: onSubmitRowForm,
           });
         }
       };
     };
-  }
-);
+  });
 
-/**
- * ResizeBars.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResizeBars.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class handles table column and row resizing by adding divs over the columns and rows of the table.
- * These divs are then manipulated using mouse events to resize the underlying table.
- *
- * @class tinymce.table.ui.ResizeBars
- * @private
- */
-define(
-  'tinymce.plugins.table.ui.ResizeBars',
-  [
-    'tinymce.core.util.Tools',
-    'tinymce.core.util.VK'
-  ],
-  function (Tools, VK) {
+  /**
+   * This class handles table column and row resizing by adding divs over the columns and rows of the table.
+   * These divs are then manipulated using mouse events to resize the underlying table.
+   *
+   * @class tinymce.table.ui.ResizeBars
+   * @private
+   */
+  define("tinymce.plugins.table.ui.ResizeBars", [
+    "tinymce.core.util.Tools",
+    "tinymce.core.util.VK",
+  ], function (Tools, VK) {
     var hoverTable;
 
     return function (editor) {
-      var RESIZE_BAR_CLASS = 'mce-resize-bar',
-        RESIZE_BAR_ROW_CLASS = 'mce-resize-bar-row',
-        RESIZE_BAR_ROW_CURSOR_STYLE = 'row-resize',
-        RESIZE_BAR_ROW_DATA_ATTRIBUTE = 'data-row',
-        RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE = 'data-initial-top',
-        RESIZE_BAR_COL_CLASS = 'mce-resize-bar-col',
-        RESIZE_BAR_COL_CURSOR_STYLE = 'col-resize',
-        RESIZE_BAR_COL_DATA_ATTRIBUTE = 'data-col',
-        RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE = 'data-initial-left',
+      var RESIZE_BAR_CLASS = "mce-resize-bar",
+        RESIZE_BAR_ROW_CLASS = "mce-resize-bar-row",
+        RESIZE_BAR_ROW_CURSOR_STYLE = "row-resize",
+        RESIZE_BAR_ROW_DATA_ATTRIBUTE = "data-row",
+        RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE = "data-initial-top",
+        RESIZE_BAR_COL_CLASS = "mce-resize-bar-col",
+        RESIZE_BAR_COL_CURSOR_STYLE = "col-resize",
+        RESIZE_BAR_COL_DATA_ATTRIBUTE = "data-col",
+        RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE = "data-initial-left",
         RESIZE_BAR_THICKNESS = 4,
         RESIZE_MINIMUM_WIDTH = 10,
         RESIZE_MINIMUM_HEIGHT = 10,
-        RESIZE_BAR_DRAGGING_CLASS = 'mce-resize-bar-dragging';
+        RESIZE_BAR_DRAGGING_CLASS = "mce-resize-bar-dragging";
 
       var percentageBasedSizeRegex = new RegExp(/(\d+(\.\d+)?%)/),
         pixelBasedSizeRegex = new RegExp(/px|em/);
@@ -2640,7 +2791,7 @@ define(
       function getTopEdge(index, row) {
         return {
           index: index,
-          y: editor.dom.getPos(row).y
+          y: editor.dom.getPos(row).y,
         };
       }
 
@@ -2648,7 +2799,7 @@ define(
       function getBottomEdge(index, row) {
         return {
           index: index,
-          y: editor.dom.getPos(row).y + row.offsetHeight
+          y: editor.dom.getPos(row).y + row.offsetHeight,
         };
       }
 
@@ -2656,7 +2807,7 @@ define(
       function getLeftEdge(index, cell) {
         return {
           index: index,
-          x: editor.dom.getPos(cell).x
+          x: editor.dom.getPos(cell).x,
         };
       }
 
@@ -2664,13 +2815,13 @@ define(
       function getRightEdge(index, cell) {
         return {
           index: index,
-          x: editor.dom.getPos(cell).x + cell.offsetWidth
+          x: editor.dom.getPos(cell).x + cell.offsetWidth,
         };
       }
 
       function isRtl() {
         var dir = editor.getBody().dir;
-        return dir === 'rtl';
+        return dir === "rtl";
       }
 
       function isInline() {
@@ -2678,7 +2829,9 @@ define(
       }
 
       function getBody() {
-        return isInline ? editor.getBody().ownerDocument.body : editor.getBody();
+        return isInline
+          ? editor.getBody().ownerDocument.body
+          : editor.getBody();
       }
 
       function getInnerEdge(index, cell) {
@@ -2690,7 +2843,11 @@ define(
       }
 
       function getPercentageWidthFallback(element, table) {
-        return getComputedStyleSize(element, 'width') / getComputedStyleSize(table, 'width') * 100;
+        return (
+          (getComputedStyleSize(element, "width") /
+            getComputedStyleSize(table, "width")) *
+          100
+        );
       }
 
       function getComputedStyleSize(element, property) {
@@ -2700,19 +2857,25 @@ define(
       }
 
       function getCurrentTablePercentWidth(table) {
-        var tableWidth = getComputedStyleSize(table, 'width');
-        var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
-        return tableWidth / tableParentWidth * 100;
+        var tableWidth = getComputedStyleSize(table, "width");
+        var tableParentWidth = getComputedStyleSize(
+          table.parentElement,
+          "width",
+        );
+        return (tableWidth / tableParentWidth) * 100;
       }
 
       function getCellPercentDelta(table, delta) {
-        var tableWidth = getComputedStyleSize(table, 'width');
-        return delta / tableWidth * 100;
+        var tableWidth = getComputedStyleSize(table, "width");
+        return (delta / tableWidth) * 100;
       }
 
       function getTablePercentDelta(table, delta) {
-        var tableParentWidth = getComputedStyleSize(table.parentElement, 'width');
-        return delta / tableParentWidth * 100;
+        var tableParentWidth = getComputedStyleSize(
+          table.parentElement,
+          "width",
+        );
+        return (delta / tableParentWidth) * 100;
       }
 
       // Find the left/right (ltr/rtl) or top side locations of the cells to measure.
@@ -2730,14 +2893,16 @@ define(
         }
 
         var lastTableLineToMake = thingsToMeasure[thingsToMeasure.length - 1];
-        tablePositions.push(getOuter(thingsToMeasure.length - 1, lastTableLineToMake.element));
+        tablePositions.push(
+          getOuter(thingsToMeasure.length - 1, lastTableLineToMake.element),
+        );
 
         return tablePositions;
       }
 
       // Clear the bars.
       function clearBars() {
-        var bars = editor.dom.select('.' + RESIZE_BAR_CLASS, getBody());
+        var bars = editor.dom.select("." + RESIZE_BAR_CLASS, getBody());
         Tools.each(bars, function (bar) {
           editor.dom.remove(bar);
         });
@@ -2750,20 +2915,40 @@ define(
       }
 
       // Generates a resize bar object for the editor to add.
-      function generateBar(classToAdd, cursor, left, top, height, width, indexAttr, index) {
+      function generateBar(
+        classToAdd,
+        cursor,
+        left,
+        top,
+        height,
+        width,
+        indexAttr,
+        index,
+      ) {
         var bar = {
-          'data-mce-bogus': 'all',
-          'class': RESIZE_BAR_CLASS + ' ' + classToAdd,
-          'unselectable': 'on',
-          'data-mce-resize': false,
-          style: 'cursor: ' + cursor + '; ' +
-          'margin: 0; ' +
-          'padding: 0; ' +
-          'position: absolute; ' +
-          'left: ' + left + 'px; ' +
-          'top: ' + top + 'px; ' +
-          'height: ' + height + 'px; ' +
-          'width: ' + width + 'px; '
+          "data-mce-bogus": "all",
+          class: RESIZE_BAR_CLASS + " " + classToAdd,
+          unselectable: "on",
+          "data-mce-resize": false,
+          style:
+            "cursor: " +
+            cursor +
+            "; " +
+            "margin: 0; " +
+            "padding: 0; " +
+            "position: absolute; " +
+            "left: " +
+            left +
+            "px; " +
+            "top: " +
+            top +
+            "px; " +
+            "height: " +
+            height +
+            "px; " +
+            "width: " +
+            width +
+            "px; ",
         };
 
         bar[indexAttr] = index;
@@ -2779,9 +2964,20 @@ define(
             height = RESIZE_BAR_THICKNESS,
             width = tableWidth;
 
-          editor.dom.add(getBody(), 'div',
-            generateBar(RESIZE_BAR_ROW_CLASS, RESIZE_BAR_ROW_CURSOR_STYLE,
-              left, top, height, width, RESIZE_BAR_ROW_DATA_ATTRIBUTE, rowPosition.index));
+          editor.dom.add(
+            getBody(),
+            "div",
+            generateBar(
+              RESIZE_BAR_ROW_CLASS,
+              RESIZE_BAR_ROW_CURSOR_STYLE,
+              left,
+              top,
+              height,
+              width,
+              RESIZE_BAR_ROW_DATA_ATTRIBUTE,
+              rowPosition.index,
+            ),
+          );
         });
       }
 
@@ -2793,41 +2989,52 @@ define(
             height = tableHeight,
             width = RESIZE_BAR_THICKNESS;
 
-          editor.dom.add(getBody(), 'div',
-            generateBar(RESIZE_BAR_COL_CLASS, RESIZE_BAR_COL_CURSOR_STYLE,
-              left, top, height, width, RESIZE_BAR_COL_DATA_ATTRIBUTE, cellPosition.index));
+          editor.dom.add(
+            getBody(),
+            "div",
+            generateBar(
+              RESIZE_BAR_COL_CLASS,
+              RESIZE_BAR_COL_CURSOR_STYLE,
+              left,
+              top,
+              height,
+              width,
+              RESIZE_BAR_COL_DATA_ATTRIBUTE,
+              cellPosition.index,
+            ),
+          );
         });
       }
 
       // Get a matrix of the cells in each row and the rows in the table.
       function getTableDetails(table) {
         return Tools.map(table.rows, function (row) {
-
           var cells = Tools.map(row.cells, function (cell) {
-
-            var rowspan = cell.hasAttribute('rowspan') ? parseInt(cell.getAttribute('rowspan'), 10) : 1;
-            var colspan = cell.hasAttribute('colspan') ? parseInt(cell.getAttribute('colspan'), 10) : 1;
+            var rowspan = cell.hasAttribute("rowspan")
+              ? parseInt(cell.getAttribute("rowspan"), 10)
+              : 1;
+            var colspan = cell.hasAttribute("colspan")
+              ? parseInt(cell.getAttribute("colspan"), 10)
+              : 1;
 
             return {
               element: cell,
               rowspan: rowspan,
-              colspan: colspan
+              colspan: colspan,
             };
           });
 
           return {
             element: row,
-            cells: cells
+            cells: cells,
           };
-
         });
-
       }
 
       // Get a grid model of the table.
       function getTableGrid(tableDetails) {
         function key(rowIndex, colIndex) {
-          return rowIndex + ',' + colIndex;
+          return rowIndex + "," + colIndex;
         }
 
         function getAt(rowIndex, colIndex) {
@@ -2856,7 +3063,6 @@ define(
           var currentRow = [];
 
           Tools.each(row.cells, function (cell) {
-
             var start = 0;
 
             while (access[key(rowIndex, start)] !== undefined) {
@@ -2868,7 +3074,7 @@ define(
               colspan: cell.colspan,
               rowspan: cell.rowspan,
               rowIndex: rowIndex,
-              colIndex: start
+              colIndex: start,
             };
 
             for (var i = 0; i < cell.colspan; i++) {
@@ -2886,18 +3092,18 @@ define(
 
           rows.push({
             element: row.element,
-            cells: currentRow
+            cells: currentRow,
           });
         });
 
         return {
           grid: {
             maxRows: maxRows,
-            maxCols: maxCols
+            maxCols: maxCols,
           },
           getAt: getAt,
           getAllCells: getAllCells,
-          getAllRows: getAllRows
+          getAllRows: getAllRows,
         };
       }
 
@@ -3003,8 +3209,12 @@ define(
         var cols = getColumnBlocks(tableGrid);
 
         var tablePosition = editor.dom.getPos(table);
-        var rowPositions = rows.length > 0 ? findPositions(getTopEdge, getBottomEdge, rows) : [];
-        var colPositions = cols.length > 0 ? findPositions(getInnerEdge, getOuterEdge, cols) : [];
+        var rowPositions =
+          rows.length > 0 ? findPositions(getTopEdge, getBottomEdge, rows) : [];
+        var colPositions =
+          cols.length > 0
+            ? findPositions(getInnerEdge, getOuterEdge, cols)
+            : [];
 
         drawRows(rowPositions, table.offsetWidth, tablePosition);
         drawCols(colPositions, table.offsetHeight, tablePosition);
@@ -3021,7 +3231,7 @@ define(
         if (current) {
           current = {
             value: current,
-            delta: 0
+            delta: 0,
           };
         } else {
           var reversedUpToIndex = deducables.slice(0, index).reverse();
@@ -3029,7 +3239,7 @@ define(
             if (reversedUpToIndex[i]) {
               current = {
                 value: reversedUpToIndex[i],
-                delta: i + 1
+                delta: i + 1,
               };
             }
           }
@@ -3040,7 +3250,7 @@ define(
         if (next) {
           next = {
             value: next,
-            delta: 1
+            delta: 1,
           };
         } else {
           var rest = deducables.slice(index + 1);
@@ -3048,7 +3258,7 @@ define(
             if (rest[j]) {
               next = {
                 value: rest[j],
-                delta: j + 1
+                delta: j + 1,
               };
             }
           }
@@ -3056,7 +3266,9 @@ define(
 
         var extras = next.delta - current.delta;
         var pixelWidth = Math.abs(next.value - current.value) / extras;
-        return isPercentageBased ? pixelWidth / getComputedStyleSize(table, 'width') * 100 : pixelWidth;
+        return isPercentageBased
+          ? (pixelWidth / getComputedStyleSize(table, "width")) * 100
+          : pixelWidth;
       }
 
       function getStyleOrAttrib(element, property) {
@@ -3071,29 +3283,31 @@ define(
       }
 
       function getWidth(element, isPercentageBased, table) {
-        var widthString = getStyleOrAttrib(element, 'width');
+        var widthString = getStyleOrAttrib(element, "width");
 
         var widthNumber = parseInt(widthString, 10);
 
-        var getWidthFallback = isPercentageBased ?
-          getPercentageWidthFallback(element, table) :
-          getComputedStyleSize(element, 'width');
+        var getWidthFallback = isPercentageBased
+          ? getPercentageWidthFallback(element, table)
+          : getComputedStyleSize(element, "width");
 
         // If this is percentage based table, but this cell isn't percentage based.
         // Or if this is a pixel based table, but this cell isn't pixel based.
-        if (isPercentageBased && !isPercentageBasedSize(widthString) ||
-          !isPercentageBased && !isPixelBasedSize(widthString)) {
+        if (
+          (isPercentageBased && !isPercentageBasedSize(widthString)) ||
+          (!isPercentageBased && !isPixelBasedSize(widthString))
+        ) {
           // set the widthnumber to 0
           widthNumber = 0;
         }
 
-        return !isNaN(widthNumber) && widthNumber > 0 ?
-          widthNumber : getWidthFallback;
+        return !isNaN(widthNumber) && widthNumber > 0
+          ? widthNumber
+          : getWidthFallback;
       }
 
       // Attempt to get the css width from column representative cells.
       function getWidths(tableGrid, isPercentageBased, table) {
-
         var cols = getColumnBlocks(tableGrid);
 
         var backups = Tools.map(cols, function (col) {
@@ -3103,9 +3317,14 @@ define(
         var widths = [];
 
         for (var i = 0; i < cols.length; i++) {
-          var span = cols[i].element.hasAttribute('colspan') ? parseInt(cols[i].element.getAttribute('colspan'), 10) : 1;
+          var span = cols[i].element.hasAttribute("colspan")
+            ? parseInt(cols[i].element.getAttribute("colspan"), 10)
+            : 1;
           // Deduce if the column has colspan of more than 1
-          var width = span > 1 ? deduceSize(backups, i) : getWidth(cols[i].element, isPercentageBased, table);
+          var width =
+            span > 1
+              ? deduceSize(backups, i)
+              : getWidth(cols[i].element, isPercentageBased, table);
           // If everything's failed and we still don't have a width
           width = width ? width : RESIZE_MINIMUM_WIDTH;
           widths.push(width);
@@ -3116,8 +3335,7 @@ define(
 
       // Attempt to get the pixel height from a cell.
       function getPixelHeight(element) {
-
-        var heightString = getStyleOrAttrib(element, 'height');
+        var heightString = getStyleOrAttrib(element, "height");
 
         var heightNumber = parseInt(heightString, 10);
 
@@ -3125,13 +3343,13 @@ define(
           heightNumber = 0;
         }
 
-        return !isNaN(heightNumber) && heightNumber > 0 ?
-          heightNumber : getComputedStyleSize(element, 'height');
+        return !isNaN(heightNumber) && heightNumber > 0
+          ? heightNumber
+          : getComputedStyleSize(element, "height");
       }
 
       // Attempt to get the css height from row representative cells.
       function getPixelHeights(tableGrid) {
-
         var rows = getRowBlocks(tableGrid);
 
         var backups = Tools.map(rows, function (row) {
@@ -3141,9 +3359,12 @@ define(
         var heights = [];
 
         for (var i = 0; i < rows.length; i++) {
-          var span = rows[i].element.hasAttribute('rowspan') ? parseInt(rows[i].element.getAttribute('rowspan'), 10) : 1;
+          var span = rows[i].element.hasAttribute("rowspan")
+            ? parseInt(rows[i].element.getAttribute("rowspan"), 10)
+            : 1;
 
-          var height = span > 1 ? deduceSize(backups, i) : getPixelHeight(rows[i].element);
+          var height =
+            span > 1 ? deduceSize(backups, i) : getPixelHeight(rows[i].element);
 
           height = height ? height : RESIZE_MINIMUM_HEIGHT;
           heights.push(height);
@@ -3155,7 +3376,6 @@ define(
       // Determine how much each column's css width will need to change.
       // Sizes = result = pixels widths OR percentage based widths
       function determineDeltas(sizes, column, step, min, isPercentageBased) {
-
         var result = sizes.slice(0);
 
         function generateZeros(array) {
@@ -3177,18 +3397,21 @@ define(
         }
 
         function onLeftOrMiddle(index, next) {
-
           var startZeros = generateZeros(result.slice(0, index));
           var endZeros = generateZeros(result.slice(next + 1));
           var deltas;
 
           if (step >= 0) {
             var newNext = Math.max(min, result[next] - step);
-            deltas = startZeros.concat([step, newNext - result[next]]).concat(endZeros);
+            deltas = startZeros
+              .concat([step, newNext - result[next]])
+              .concat(endZeros);
           } else {
             var newThis = Math.max(min, result[index] + step);
             var diffx = result[index] - newThis;
-            deltas = startZeros.concat([newThis - result[index], diffx]).concat(endZeros);
+            deltas = startZeros
+              .concat([newThis - result[index], diffx])
+              .concat(endZeros);
           }
 
           return deltas;
@@ -3206,20 +3429,24 @@ define(
           }
 
           return deltas;
-
         }
 
         var deltas;
 
-        if (sizes.length === 0) { // No Columns
+        if (sizes.length === 0) {
+          // No Columns
           deltas = [];
-        } else if (sizes.length === 1) { // One Column
+        } else if (sizes.length === 1) {
+          // One Column
           deltas = onOneColumn();
-        } else if (column === 0) { // Left Column
+        } else if (column === 0) {
+          // Left Column
           deltas = onLeftOrMiddle(0, 1);
-        } else if (column > 0 && column < sizes.length - 1) { // Middle Column
+        } else if (column > 0 && column < sizes.length - 1) {
+          // Middle Column
           deltas = onLeftOrMiddle(column, column + 1);
-        } else if (column === sizes.length - 1) { // Right Column
+        } else if (column === sizes.length - 1) {
+          // Right Column
           deltas = onRight(column - 1, column);
         } else {
           deltas = [];
@@ -3240,11 +3467,15 @@ define(
       function recalculateWidths(tableGrid, widths) {
         var allCells = tableGrid.getAllCells();
         return Tools.map(allCells, function (cell) {
-          var width = total(cell.colIndex, cell.colIndex + cell.colspan, widths);
+          var width = total(
+            cell.colIndex,
+            cell.colIndex + cell.colspan,
+            widths,
+          );
           return {
             element: cell.element,
             width: width,
-            colspan: cell.colspan
+            colspan: cell.colspan,
           };
         });
       }
@@ -3253,11 +3484,15 @@ define(
       function recalculateCellHeights(tableGrid, heights) {
         var allCells = tableGrid.getAllCells();
         return Tools.map(allCells, function (cell) {
-          var height = total(cell.rowIndex, cell.rowIndex + cell.rowspan, heights);
+          var height = total(
+            cell.rowIndex,
+            cell.rowIndex + cell.rowspan,
+            heights,
+          );
           return {
             element: cell.element,
             height: height,
-            rowspan: cell.rowspan
+            rowspan: cell.rowspan,
           };
         });
       }
@@ -3268,7 +3503,7 @@ define(
         return Tools.map(allRows, function (row, i) {
           return {
             element: row.element,
-            height: heights[i]
+            height: heights[i],
           };
         });
       }
@@ -3288,36 +3523,51 @@ define(
 
         function setSizes(newSizes, styleExtension) {
           Tools.each(newSizes, function (cell) {
-            editor.dom.setStyle(cell.element, 'width', cell.width + styleExtension);
-            editor.dom.setAttrib(cell.element, 'width', null);
+            editor.dom.setStyle(
+              cell.element,
+              "width",
+              cell.width + styleExtension,
+            );
+            editor.dom.setAttrib(cell.element, "width", null);
           });
         }
 
         function getNewTablePercentWidth() {
-          return index < tableGrid.grid.maxCols - 1 ? getCurrentTablePercentWidth(table) :
-            getCurrentTablePercentWidth(table) + getTablePercentDelta(table, delta);
+          return index < tableGrid.grid.maxCols - 1
+            ? getCurrentTablePercentWidth(table)
+            : getCurrentTablePercentWidth(table) +
+                getTablePercentDelta(table, delta);
         }
 
         function getNewTablePixelWidth() {
-          return index < tableGrid.grid.maxCols - 1 ? getComputedStyleSize(table, 'width') :
-            getComputedStyleSize(table, 'width') + delta;
+          return index < tableGrid.grid.maxCols - 1
+            ? getComputedStyleSize(table, "width")
+            : getComputedStyleSize(table, "width") + delta;
         }
 
         function setTableSize(newTableWidth, styleExtension, isPercentBased) {
           if (index == tableGrid.grid.maxCols - 1 || !isPercentBased) {
-            editor.dom.setStyle(table, 'width', newTableWidth + styleExtension);
-            editor.dom.setAttrib(table, 'width', null);
+            editor.dom.setStyle(table, "width", newTableWidth + styleExtension);
+            editor.dom.setAttrib(table, "width", null);
           }
         }
 
-        var percentageBased = isPercentageBasedSize(table.width) ||
+        var percentageBased =
+          isPercentageBasedSize(table.width) ||
           isPercentageBasedSize(table.style.width);
 
         var widths = getWidths(tableGrid, percentageBased, table);
 
         var step = percentageBased ? getCellPercentDelta(table, delta) : delta;
         // TODO: change the min for percentage maybe?
-        var deltas = determineDeltas(widths, index, step, RESIZE_MINIMUM_WIDTH, percentageBased, table);
+        var deltas = determineDeltas(
+          widths,
+          index,
+          step,
+          RESIZE_MINIMUM_WIDTH,
+          percentageBased,
+          table,
+        );
         var newWidths = [];
 
         for (var i = 0; i < deltas.length; i++) {
@@ -3325,9 +3575,10 @@ define(
         }
 
         var newSizes = recalculateWidths(tableGrid, newWidths);
-        var styleExtension = percentageBased ? '%' : 'px';
-        var newTableWidth = percentageBased ? getNewTablePercentWidth() :
-          getNewTablePixelWidth();
+        var styleExtension = percentageBased ? "%" : "px";
+        var newTableWidth = percentageBased
+          ? getNewTablePercentWidth()
+          : getNewTablePixelWidth();
 
         editor.undoManager.transact(function () {
           setSizes(newSizes, styleExtension);
@@ -3342,7 +3593,8 @@ define(
 
         var heights = getPixelHeights(tableGrid);
 
-        var newHeights = [], newTotalHeight = 0;
+        var newHeights = [],
+          newTotalHeight = 0;
 
         for (var i = 0; i < heights.length; i++) {
           newHeights.push(i === index ? delta + heights[i] : heights[i]);
@@ -3353,19 +3605,18 @@ define(
         var newRowSizes = recalculateRowHeights(tableGrid, newHeights);
 
         editor.undoManager.transact(function () {
-
           Tools.each(newRowSizes, function (row) {
-            editor.dom.setStyle(row.element, 'height', row.height + 'px');
-            editor.dom.setAttrib(row.element, 'height', null);
+            editor.dom.setStyle(row.element, "height", row.height + "px");
+            editor.dom.setAttrib(row.element, "height", null);
           });
 
           Tools.each(newCellSizes, function (cell) {
-            editor.dom.setStyle(cell.element, 'height', cell.height + 'px');
-            editor.dom.setAttrib(cell.element, 'height', null);
+            editor.dom.setStyle(cell.element, "height", cell.height + "px");
+            editor.dom.setAttrib(cell.element, "height", null);
           });
 
-          editor.dom.setStyle(table, 'height', newTotalHeight + 'px');
-          editor.dom.setAttrib(table, 'height', null);
+          editor.dom.setStyle(table, "height", newTotalHeight + "px");
+          editor.dom.setAttrib(table, "height", null);
         });
       }
 
@@ -3380,26 +3631,29 @@ define(
       }
 
       function getBlockerElement() {
-        var blocker = document.createElement('div');
+        var blocker = document.createElement("div");
 
-        blocker.setAttribute('style', 'margin: 0; ' +
-          'padding: 0; ' +
-          'position: fixed; ' +
-          'left: 0px; ' +
-          'top: 0px; ' +
-          'height: 100%; ' +
-          'width: 100%;');
-        blocker.setAttribute('data-mce-bogus', 'all');
+        blocker.setAttribute(
+          "style",
+          "margin: 0; " +
+            "padding: 0; " +
+            "position: fixed; " +
+            "left: 0px; " +
+            "top: 0px; " +
+            "height: 100%; " +
+            "width: 100%;",
+        );
+        blocker.setAttribute("data-mce-bogus", "all");
 
         return blocker;
       }
 
       function bindBlockerEvents(blocker, dragHandler) {
-        editor.dom.bind(blocker, 'mouseup', function () {
+        editor.dom.bind(blocker, "mouseup", function () {
           drop();
         });
 
-        editor.dom.bind(blocker, 'mousemove', function (e) {
+        editor.dom.bind(blocker, "mousemove", function (e) {
           cancelDelayedDropEvent();
 
           if (dragging) {
@@ -3407,10 +3661,9 @@ define(
           }
         });
 
-        editor.dom.bind(blocker, 'mouseout', function () {
+        editor.dom.bind(blocker, "mouseout", function () {
           scheduleDelayedDropEvent();
         });
-
       }
 
       function drop() {
@@ -3423,19 +3676,39 @@ define(
           var index, delta;
 
           if (isCol(dragBar)) {
-            var initialLeft = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE), 10);
+            var initialLeft = parseInt(
+              editor.dom.getAttrib(
+                dragBar,
+                RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE,
+              ),
+              10,
+            );
             var newLeft = editor.dom.getPos(dragBar).x;
-            index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_ATTRIBUTE), 10);
+            index = parseInt(
+              editor.dom.getAttrib(dragBar, RESIZE_BAR_COL_DATA_ATTRIBUTE),
+              10,
+            );
             delta = isRtl() ? initialLeft - newLeft : newLeft - initialLeft;
-            if (Math.abs(delta) >= 1) { // simple click with no real resize (<1px) must not add CSS properties
+            if (Math.abs(delta) >= 1) {
+              // simple click with no real resize (<1px) must not add CSS properties
               adjustWidth(hoverTable, delta, index);
             }
           } else if (isRow(dragBar)) {
-            var initialTop = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE), 10);
+            var initialTop = parseInt(
+              editor.dom.getAttrib(
+                dragBar,
+                RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE,
+              ),
+              10,
+            );
             var newTop = editor.dom.getPos(dragBar).y;
-            index = parseInt(editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_ATTRIBUTE), 10);
+            index = parseInt(
+              editor.dom.getAttrib(dragBar, RESIZE_BAR_ROW_DATA_ATTRIBUTE),
+              10,
+            );
             delta = newTop - initialTop;
-            if (Math.abs(delta) >= 1) { // simple click with no real resize (<1px) must not add CSS properties
+            if (Math.abs(delta) >= 1) {
+              // simple click with no real resize (<1px) must not add CSS properties
               adjustHeight(hoverTable, delta, index);
             }
           }
@@ -3466,7 +3739,7 @@ define(
         var deltaX = event.clientX - lastX;
         lastX = event.clientX;
         var oldLeft = editor.dom.getPos(dragBar).x;
-        editor.dom.setStyle(dragBar, 'left', oldLeft + deltaX + 'px');
+        editor.dom.setStyle(dragBar, "left", oldLeft + deltaX + "px");
       }
 
       function rowDragHandler(event) {
@@ -3474,7 +3747,7 @@ define(
         var deltaY = event.clientY - lastY;
         lastY = event.clientY;
         var oldTop = editor.dom.getPos(dragBar).y;
-        editor.dom.setStyle(dragBar, 'top', oldTop + deltaY + 'px');
+        editor.dom.setStyle(dragBar, "top", oldTop + deltaY + "px");
       }
 
       function setupColDrag(bar) {
@@ -3488,7 +3761,8 @@ define(
       }
 
       function mouseDownHandler(e) {
-        var target = e.target, body = editor.getBody();
+        var target = e.target,
+          body = editor.getBody();
 
         // Since this code is working on global events we need to work on a global hoverTable state
         // and make sure that the state is correct according to the events fired
@@ -3499,49 +3773,57 @@ define(
         if (isCol(target)) {
           e.preventDefault();
           var initialLeft = editor.dom.getPos(target).x;
-          editor.dom.setAttrib(target, RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE, initialLeft);
+          editor.dom.setAttrib(
+            target,
+            RESIZE_BAR_COL_DATA_INITIAL_LEFT_ATTRIBUTE,
+            initialLeft,
+          );
           setupColDrag(target);
         } else if (isRow(target)) {
           e.preventDefault();
           var initialTop = editor.dom.getPos(target).y;
-          editor.dom.setAttrib(target, RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE, initialTop);
+          editor.dom.setAttrib(
+            target,
+            RESIZE_BAR_ROW_DATA_INITIAL_TOP_ATTRIBUTE,
+            initialTop,
+          );
           setupRowDrag(target);
         } else {
           clearBars();
         }
       }
 
-      editor.on('init', function () {
+      editor.on("init", function () {
         // Needs to be like this for inline mode, editor.on does not bind to elements in the document body otherwise
-        editor.dom.bind(getBody(), 'mousedown', mouseDownHandler);
+        editor.dom.bind(getBody(), "mousedown", mouseDownHandler);
       });
 
       // If we're updating the table width via the old mechanic, we need to update the constituent cells' widths/heights too.
-      editor.on('ObjectResized', function (e) {
+      editor.on("ObjectResized", function (e) {
         var table = e.target;
-        if (table.nodeName === 'TABLE') {
+        if (table.nodeName === "TABLE") {
           var newCellSizes = [];
           Tools.each(table.rows, function (row) {
             Tools.each(row.cells, function (cell) {
-              var width = editor.dom.getStyle(cell, 'width', true);
+              var width = editor.dom.getStyle(cell, "width", true);
               newCellSizes.push({
                 cell: cell,
-                width: width
+                width: width,
               });
             });
           });
           Tools.each(newCellSizes, function (newCellSize) {
-            editor.dom.setStyle(newCellSize.cell, 'width', newCellSize.width);
-            editor.dom.setAttrib(newCellSize.cell, 'width', null);
+            editor.dom.setStyle(newCellSize.cell, "width", newCellSize.width);
+            editor.dom.setAttrib(newCellSize.cell, "width", null);
           });
         }
       });
 
-      editor.on('mouseover', function (e) {
+      editor.on("mouseover", function (e) {
         if (!dragging) {
-          var tableElement = editor.dom.getParent(e.target, 'table');
+          var tableElement = editor.dom.getParent(e.target, "table");
 
-          if (e.target.nodeName === 'TABLE' || tableElement) {
+          if (e.target.nodeName === "TABLE" || tableElement) {
             hoverTable = tableElement;
             refreshBars(tableElement);
           }
@@ -3551,7 +3833,7 @@ define(
       // Prevents the user from moving the caret inside the resize bars on Chrome
       // Only does it on arrow keys since clearBars might be an epxensive operation
       // since it's querying the DOM
-      editor.on('keydown', function (e) {
+      editor.on("keydown", function (e) {
         switch (e.keyCode) {
           case VK.LEFT:
           case VK.RIGHT:
@@ -3562,9 +3844,9 @@ define(
         }
       });
 
-      editor.on('remove', function () {
+      editor.on("remove", function () {
         clearBars();
-        editor.dom.unbind(getBody(), 'mousedown', mouseDownHandler);
+        editor.dom.unbind(getBody(), "mousedown", mouseDownHandler);
       });
 
       return {
@@ -3581,71 +3863,64 @@ define(
         isPixelBasedSize: isPixelBasedSize,
         recalculateWidths: recalculateWidths,
         recalculateCellHeights: recalculateCellHeights,
-        recalculateRowHeights: recalculateRowHeights
+        recalculateRowHeights: recalculateRowHeights,
       };
     };
-  }
-);
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Delay',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Delay');
-  }
-);
+  define("tinymce.core.util.Delay", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Delay");
+  });
 
-/**
- * Quirks.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Quirks.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class includes fixes for various browser quirks.
- *
- * @class tinymce.table.util.Quirks
- * @private
- */
-define(
-  'tinymce.plugins.table.util.Quirks',
-  [
-    'tinymce.core.util.VK',
-    'tinymce.core.util.Delay',
-    'tinymce.core.Env',
-    'tinymce.core.util.Tools',
-    'tinymce.plugins.table.util.Utils'
-  ],
-  function (VK, Delay, Env, Tools, Utils) {
-    var each = Tools.each, getSpanVal = Utils.getSpanVal;
+  /**
+   * This class includes fixes for various browser quirks.
+   *
+   * @class tinymce.table.util.Quirks
+   * @private
+   */
+  define("tinymce.plugins.table.util.Quirks", [
+    "tinymce.core.util.VK",
+    "tinymce.core.util.Delay",
+    "tinymce.core.Env",
+    "tinymce.core.util.Tools",
+    "tinymce.plugins.table.util.Utils",
+  ], function (VK, Delay, Env, Tools, Utils) {
+    var each = Tools.each,
+      getSpanVal = Utils.getSpanVal;
 
     return function (editor) {
       /**
-      * Fixed caret movement around tables on WebKit.
-      */
+       * Fixed caret movement around tables on WebKit.
+       */
       function moveWebKitSelection() {
         function eventHandler(e) {
           var key = e.keyCode;
 
           function handle(upBool, sourceNode) {
-            var siblingDirection = upBool ? 'previousSibling' : 'nextSibling';
-            var currentRow = editor.dom.getParent(sourceNode, 'tr');
+            var siblingDirection = upBool ? "previousSibling" : "nextSibling";
+            var currentRow = editor.dom.getParent(sourceNode, "tr");
             var siblingRow = currentRow[siblingDirection];
 
             if (siblingRow) {
@@ -3654,11 +3929,19 @@ define(
               return true;
             }
 
-            var tableNode = editor.dom.getParent(currentRow, 'table');
+            var tableNode = editor.dom.getParent(currentRow, "table");
             var middleNode = currentRow.parentNode;
             var parentNodeName = middleNode.nodeName.toLowerCase();
-            if (parentNodeName === 'tbody' || parentNodeName === (upBool ? 'tfoot' : 'thead')) {
-              var targetParent = getTargetParent(upBool, tableNode, middleNode, 'tbody');
+            if (
+              parentNodeName === "tbody" ||
+              parentNodeName === (upBool ? "tfoot" : "thead")
+            ) {
+              var targetParent = getTargetParent(
+                upBool,
+                tableNode,
+                middleNode,
+                "tbody",
+              );
               if (targetParent !== null) {
                 return moveToRowInTarget(upBool, targetParent, sourceNode);
               }
@@ -3668,12 +3951,18 @@ define(
           }
 
           function getTargetParent(upBool, topNode, secondNode, nodeName) {
-            var tbodies = editor.dom.select('>' + nodeName, topNode);
+            var tbodies = editor.dom.select(">" + nodeName, topNode);
             var position = tbodies.indexOf(secondNode);
-            if (upBool && position === 0 || !upBool && position === tbodies.length - 1) {
+            if (
+              (upBool && position === 0) ||
+              (!upBool && position === tbodies.length - 1)
+            ) {
               return getFirstHeadOrFoot(upBool, topNode);
             } else if (position === -1) {
-              var topOrBottom = secondNode.tagName.toLowerCase() === 'thead' ? 0 : tbodies.length - 1;
+              var topOrBottom =
+                secondNode.tagName.toLowerCase() === "thead"
+                  ? 0
+                  : tbodies.length - 1;
               return tbodies[topOrBottom];
             }
 
@@ -3681,8 +3970,8 @@ define(
           }
 
           function getFirstHeadOrFoot(upBool, parent) {
-            var tagName = upBool ? 'thead' : 'tfoot';
-            var headOrFoot = editor.dom.select('>' + tagName, parent);
+            var tagName = upBool ? "thead" : "tfoot";
+            var headOrFoot = editor.dom.select(">" + tagName, parent);
             return headOrFoot.length !== 0 ? headOrFoot[0] : null;
           }
 
@@ -3705,7 +3994,7 @@ define(
               return true;
             }
 
-            var parentCell = editor.dom.getParent(table, 'td,th');
+            var parentCell = editor.dom.getParent(table, "td,th");
             if (parentCell) {
               return handle(upBool, parentCell, e);
             }
@@ -3717,9 +4006,11 @@ define(
           }
 
           function getChildForDirection(parent, up) {
-            var child = parent && parent[up ? 'lastChild' : 'firstChild'];
+            var child = parent && parent[up ? "lastChild" : "firstChild"];
             // BR is not a valid table child to return in this case we return the table cell
-            return child && child.nodeName === 'BR' ? editor.dom.getParent(child, 'td,th') : child;
+            return child && child.nodeName === "BR"
+              ? editor.dom.getParent(child, "td,th")
+              : child;
           }
 
           function moveCursorToStartOfElement(n) {
@@ -3732,7 +4023,7 @@ define(
 
           function isInTable(editor) {
             var node = editor.selection.getNode();
-            var currentRow = editor.dom.getParent(node, 'tr');
+            var currentRow = editor.dom.getParent(node, "tr");
             return currentRow !== null;
           }
 
@@ -3747,7 +4038,8 @@ define(
           }
 
           function findColumn(rowElement, columnIndex) {
-            var c = 0, r = 0;
+            var c = 0,
+              r = 0;
 
             each(rowElement.children, function (cell, i) {
               c = c + getSpanVal(cell, "colspan");
@@ -3760,7 +4052,9 @@ define(
           }
 
           function moveCursorToRow(ed, node, row, upBool) {
-            var srcColumnIndex = columnIndex(editor.dom.getParent(node, 'td,th'));
+            var srcColumnIndex = columnIndex(
+              editor.dom.getParent(node, "td,th"),
+            );
             var tgtColumnIndex = findColumn(row, srcColumnIndex);
             var tgtNode = row.childNodes[tgtColumnIndex];
             var rowCellTarget = getChildForDirection(tgtNode, upBool);
@@ -3769,27 +4063,38 @@ define(
 
           function shouldFixCaret(preBrowserNode) {
             var newNode = editor.selection.getNode();
-            var newParent = editor.dom.getParent(newNode, 'td,th');
-            var oldParent = editor.dom.getParent(preBrowserNode, 'td,th');
+            var newParent = editor.dom.getParent(newNode, "td,th");
+            var oldParent = editor.dom.getParent(preBrowserNode, "td,th");
 
-            return newParent && newParent !== oldParent && checkSameParentTable(newParent, oldParent);
+            return (
+              newParent &&
+              newParent !== oldParent &&
+              checkSameParentTable(newParent, oldParent)
+            );
           }
 
           function checkSameParentTable(nodeOne, NodeTwo) {
-            return editor.dom.getParent(nodeOne, 'TABLE') === editor.dom.getParent(NodeTwo, 'TABLE');
+            return (
+              editor.dom.getParent(nodeOne, "TABLE") ===
+              editor.dom.getParent(NodeTwo, "TABLE")
+            );
           }
 
           if (isVerticalMovement() && isInTable(editor)) {
             var preBrowserNode = editor.selection.getNode();
-            Delay.setEditorTimeout(editor, function () {
-              if (shouldFixCaret(preBrowserNode)) {
-                handle(!e.shiftKey && key === VK.UP, preBrowserNode, e);
-              }
-            }, 0);
+            Delay.setEditorTimeout(
+              editor,
+              function () {
+                if (shouldFixCaret(preBrowserNode)) {
+                  handle(!e.shiftKey && key === VK.UP, preBrowserNode, e);
+                }
+              },
+              0,
+            );
           }
         }
 
-        editor.on('KeyDown', function (e) {
+        editor.on("KeyDown", function (e) {
           eventHandler(e);
         });
       }
@@ -3797,28 +4102,36 @@ define(
       function fixBeforeTableCaretBug() {
         // Checks if the selection/caret is at the start of the specified block element
         function isAtStart(rng, par) {
-          var doc = par.ownerDocument, rng2 = doc.createRange(), elm;
+          var doc = par.ownerDocument,
+            rng2 = doc.createRange(),
+            elm;
 
           rng2.setStartBefore(par);
           rng2.setEnd(rng.endContainer, rng.endOffset);
 
-          elm = doc.createElement('body');
+          elm = doc.createElement("body");
           elm.appendChild(rng2.cloneContents());
 
           // Check for text characters of other elements that should be treated as content
-          return elm.innerHTML.replace(/<(br|img|object|embed|input|textarea)[^>]*>/gi, '-').replace(/<[^>]+>/g, '').length === 0;
+          return (
+            elm.innerHTML
+              .replace(/<(br|img|object|embed|input|textarea)[^>]*>/gi, "-")
+              .replace(/<[^>]+>/g, "").length === 0
+          );
         }
 
         // Fixes an bug where it's impossible to place the caret before a table in Gecko
         // this fix solves it by detecting when the caret is at the beginning of such a table
         // and then manually moves the caret infront of the table
-        editor.on('KeyDown', function (e) {
-          var rng, table, dom = editor.dom;
+        editor.on("KeyDown", function (e) {
+          var rng,
+            table,
+            dom = editor.dom;
 
           // On gecko it's not possible to place the caret before a table
           if (e.keyCode == 37 || e.keyCode == 38) {
             rng = editor.selection.getRng();
-            table = dom.getParent(rng.startContainer, 'table');
+            table = dom.getParent(rng.startContainer, "table");
 
             if (table && editor.getBody().firstChild == table) {
               if (isAtStart(rng, table)) {
@@ -3839,40 +4152,53 @@ define(
       // Fixes an issue on Gecko where it's impossible to place the caret behind a table
       // This fix will force a paragraph element after the table but only when the forced_root_block setting is enabled
       function fixTableCaretPos() {
-        editor.on('KeyDown SetContent VisualAid', function () {
+        editor.on("KeyDown SetContent VisualAid", function () {
           var last;
 
           // Skip empty text nodes from the end
-          for (last = editor.getBody().lastChild; last; last = last.previousSibling) {
+          for (
+            last = editor.getBody().lastChild;
+            last;
+            last = last.previousSibling
+          ) {
             if (last.nodeType == 3) {
               if (last.nodeValue.length > 0) {
                 break;
               }
-            } else if (last.nodeType == 1 && (last.tagName == 'BR' || !last.getAttribute('data-mce-bogus'))) {
+            } else if (
+              last.nodeType == 1 &&
+              (last.tagName == "BR" || !last.getAttribute("data-mce-bogus"))
+            ) {
               break;
             }
           }
 
-          if (last && last.nodeName == 'TABLE') {
+          if (last && last.nodeName == "TABLE") {
             if (editor.settings.forced_root_block) {
               editor.dom.add(
                 editor.getBody(),
                 editor.settings.forced_root_block,
                 editor.settings.forced_root_block_attrs,
-                Env.ie && Env.ie < 10 ? '&nbsp;' : '<br data-mce-bogus="1" />'
+                Env.ie && Env.ie < 10 ? "&nbsp;" : '<br data-mce-bogus="1" />',
               );
             } else {
-              editor.dom.add(editor.getBody(), 'br', { 'data-mce-bogus': '1' });
+              editor.dom.add(editor.getBody(), "br", { "data-mce-bogus": "1" });
             }
           }
         });
 
-        editor.on('PreProcess', function (o) {
+        editor.on("PreProcess", function (o) {
           var last = o.node.lastChild;
 
-          if (last && (last.nodeName == "BR" || (last.childNodes.length == 1 &&
-            (last.firstChild.nodeName == 'BR' || last.firstChild.nodeValue == '\u00a0'))) &&
-            last.previousSibling && last.previousSibling.nodeName == "TABLE") {
+          if (
+            last &&
+            (last.nodeName == "BR" ||
+              (last.childNodes.length == 1 &&
+                (last.firstChild.nodeName == "BR" ||
+                  last.firstChild.nodeValue == "\u00a0"))) &&
+            last.previousSibling &&
+            last.previousSibling.nodeName == "TABLE"
+          ) {
             editor.dom.remove(last);
           }
         });
@@ -3885,20 +4211,23 @@ define(
           // required is actually a pointer to the root cause of this bug. A cell is selected when the start
           // and end offsets are 0, the start container is a text, and the selection node is either a TR (most cases)
           // or the parent of the table (in the case of the selection containing the last cell of a table).
-          var TEXT_NODE = 3, table = ed.dom.getParent(rng.startContainer, 'TABLE');
+          var TEXT_NODE = 3,
+            table = ed.dom.getParent(rng.startContainer, "TABLE");
           var tableParent, allOfCellSelected, tableCellSelection;
 
           if (table) {
             tableParent = table.parentNode;
           }
 
-          allOfCellSelected = rng.startContainer.nodeType == TEXT_NODE &&
+          allOfCellSelected =
+            rng.startContainer.nodeType == TEXT_NODE &&
             rng.startOffset === 0 &&
             rng.endOffset === 0 &&
             currentCell &&
             (n.nodeName == "TR" || n == tableParent);
 
-          tableCellSelection = (n.nodeName == "TD" || n.nodeName == "TH") && !currentCell;
+          tableCellSelection =
+            (n.nodeName == "TD" || n.nodeName == "TH") && !currentCell;
 
           return allOfCellSelected || tableCellSelection;
         }
@@ -3906,7 +4235,7 @@ define(
         function fixSelection() {
           var rng = editor.selection.getRng();
           var n = editor.selection.getNode();
-          var currentCell = editor.dom.getParent(rng.startContainer, 'TD,TH');
+          var currentCell = editor.dom.getParent(rng.startContainer, "TD,TH");
 
           if (!tableCellSelected(editor, rng, n, currentCell)) {
             return;
@@ -3929,11 +4258,11 @@ define(
           }
         }
 
-        editor.on('KeyDown', function () {
+        editor.on("KeyDown", function () {
           fixSelection();
         });
 
-        editor.on('MouseDown', function (e) {
+        editor.on("MouseDown", function (e) {
           if (e.button != 2) {
             fixSelection();
           }
@@ -3941,8 +4270,8 @@ define(
       }
 
       /**
-      * Delete table if all cells are selected.
-      */
+       * Delete table if all cells are selected.
+       */
       function deleteTable() {
         function placeCaretInCell(cell) {
           editor.selection.select(cell, true);
@@ -3954,21 +4283,31 @@ define(
           Utils.paddCell(cell);
         }
 
-        editor.on('keydown', function (e) {
-          if ((e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) && !e.isDefaultPrevented()) {
+        editor.on("keydown", function (e) {
+          if (
+            (e.keyCode == VK.DELETE || e.keyCode == VK.BACKSPACE) &&
+            !e.isDefaultPrevented()
+          ) {
             var table, tableCells, selectedTableCells, cell;
 
-            table = editor.dom.getParent(editor.selection.getStart(), 'table');
+            table = editor.dom.getParent(editor.selection.getStart(), "table");
             if (table) {
-              tableCells = editor.dom.select('td,th', table);
+              tableCells = editor.dom.select("td,th", table);
               selectedTableCells = Tools.grep(tableCells, function (cell) {
-                return !!editor.dom.getAttrib(cell, 'data-mce-selected');
+                return !!editor.dom.getAttrib(cell, "data-mce-selected");
               });
 
               if (selectedTableCells.length === 0) {
                 // If caret is within an empty table cell then empty it for real
-                cell = editor.dom.getParent(editor.selection.getStart(), 'td,th');
-                if (editor.selection.isCollapsed() && cell && editor.dom.isEmpty(cell)) {
+                cell = editor.dom.getParent(
+                  editor.selection.getStart(),
+                  "td,th",
+                );
+                if (
+                  editor.selection.isCollapsed() &&
+                  cell &&
+                  editor.dom.isEmpty(cell)
+                ) {
                   e.preventDefault();
                   clearCell(cell);
                   placeCaretInCell(cell);
@@ -3981,7 +4320,7 @@ define(
 
               editor.undoManager.transact(function () {
                 if (tableCells.length == selectedTableCells.length) {
-                  editor.execCommand('mceTableDelete');
+                  editor.execCommand("mceTableDelete");
                 } else {
                   Tools.each(selectedTableCells, clearCell);
                   placeCaretInCell(selectedTableCells[0]);
@@ -3998,14 +4337,22 @@ define(
        * prevent it from disappearing.
        */
       function handleDeleteInCaption() {
-        var ZWSP = '\uFEFF';
+        var ZWSP = "\uFEFF";
 
         var isEmptyNode = function (node) {
-          return editor.dom.isEmpty(node) || node.firstChild === node.lastChild && isCaretContainer(node.firstChild);
+          return (
+            editor.dom.isEmpty(node) ||
+            (node.firstChild === node.lastChild &&
+              isCaretContainer(node.firstChild))
+          );
         };
 
         var isTableCaption = function (node) {
-          return node && node.nodeName == 'CAPTION' && node.parentNode.nodeName == 'TABLE';
+          return (
+            node &&
+            node.nodeName == "CAPTION" &&
+            node.parentNode.nodeName == "TABLE"
+          );
         };
 
         var isTheHeirOf = function (heir, ancestor) {
@@ -4025,12 +4372,16 @@ define(
             }
             node = node.parentNode;
           }
-          return node.nodeType === 1 && node.hasAttribute('data-mce-caret');
+          return node.nodeType === 1 && node.hasAttribute("data-mce-caret");
         };
 
         var caretIsAtTheLeftEdgeOf = function (node) {
           var rng = editor.selection.getRng();
-          return !rng.startOffset && !rng.startContainer.previousSibling && isTheHeirOf(rng.startContainer, node);
+          return (
+            !rng.startOffset &&
+            !rng.startContainer.previousSibling &&
+            isTheHeirOf(rng.startContainer, node)
+          );
         };
 
         var appendCaretContainer = function (node, isBlock) {
@@ -4038,11 +4389,14 @@ define(
           if (!isBlock) {
             caretNode = node.ownerDocument.createTextNode(ZWSP);
           } else {
-            caretNode = editor.dom.create('p', {
-              'data-mce-caret': 'after',
-              'data-mce-bogus': 'all'
-            },
-            '<br data-mce-bogus="1">');
+            caretNode = editor.dom.create(
+              "p",
+              {
+                "data-mce-caret": "after",
+                "data-mce-bogus": "all",
+              },
+              '<br data-mce-bogus="1">',
+            );
           }
           node.appendChild(caretNode);
         };
@@ -4075,7 +4429,11 @@ define(
           var newRng = editor.dom.createRng();
           var firstChild = caption.firstChild;
 
-          if (rng.commonAncestorContainer === caption.parentNode && isTheHeirOf(rng.startContainer, caption)) { // ignore backward selections
+          if (
+            rng.commonAncestorContainer === caption.parentNode &&
+            isTheHeirOf(rng.startContainer, caption)
+          ) {
+            // ignore backward selections
             // rng.selectNodeContents() didn't work in IE
             newRng.setStart(caption, 0);
             if (firstChild.nodeType === 1) {
@@ -4087,19 +4445,24 @@ define(
           }
         };
 
-        editor.on('keydown', function (e) {
-          if (e.keyCode !== VK.DELETE && e.keyCode !== VK.BACKSPACE || e.isDefaultPrevented()) {
+        editor.on("keydown", function (e) {
+          if (
+            (e.keyCode !== VK.DELETE && e.keyCode !== VK.BACKSPACE) ||
+            e.isDefaultPrevented()
+          ) {
             return;
           }
 
-          var container = editor.dom.getParent(editor.selection.getStart(), 'caption');
+          var container = editor.dom.getParent(
+            editor.selection.getStart(),
+            "caption",
+          );
           if (!isTableCaption(container)) {
             return;
           }
 
           // in IE caption collapses if caret placeholder is deleted (and it is very much possible)
           if (!editor.selection.isCollapsed()) {
-
             // in Chrome triple click selects beyond the boundaries of the caption, if then delete is pressed,
             // contents are being removed with the whole caption, so make sure we stay in caption
             contractSelectionTo(container);
@@ -4107,14 +4470,18 @@ define(
             // if the whole contents are selected, caret placeholder will be deleted too and we take
             // over delete operation here to do it manually and restore the placeholder if required
             editor.undoManager.transact(function () {
-              editor.execCommand('Delete');
+              editor.execCommand("Delete");
               restoreCaretPlaceholder(container);
             });
             e.preventDefault();
           } else {
             restoreCaretPlaceholder(container);
 
-            if (isEmptyNode(container) || e.keyCode === VK.BACKSPACE && caretIsAtTheLeftEdgeOf(container)) { // see TINY-979
+            if (
+              isEmptyNode(container) ||
+              (e.keyCode === VK.BACKSPACE && caretIsAtTheLeftEdgeOf(container))
+            ) {
+              // see TINY-979
               e.preventDefault();
             }
           }
@@ -4139,47 +4506,61 @@ define(
         fixTableCaretPos();
       }
     };
-  }
-);
+  });
 
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-/**
- * This class contains all core logic for the table plugin.
- *
- * @class tinymce.table.Plugin
- * @private
- */
-define(
-  'tinymce.plugins.table.Plugin',
-  [
-    'tinymce.core.dom.TreeWalker',
-    'tinymce.core.Env',
-    'tinymce.core.PluginManager',
-    'tinymce.core.util.Tools',
-    'tinymce.core.util.VK',
-    'tinymce.plugins.table.model.TableGrid',
-    'tinymce.plugins.table.selection.CellSelection',
-    'tinymce.plugins.table.ui.Dialogs',
-    'tinymce.plugins.table.ui.ResizeBars',
-    'tinymce.plugins.table.util.Quirks'
-  ],
-  function (TreeWalker, Env, PluginManager, Tools, VK, TableGrid, CellSelection, Dialogs, ResizeBars, Quirks) {
+  /**
+   * This class contains all core logic for the table plugin.
+   *
+   * @class tinymce.table.Plugin
+   * @private
+   */
+  define("tinymce.plugins.table.Plugin", [
+    "tinymce.core.dom.TreeWalker",
+    "tinymce.core.Env",
+    "tinymce.core.PluginManager",
+    "tinymce.core.util.Tools",
+    "tinymce.core.util.VK",
+    "tinymce.plugins.table.model.TableGrid",
+    "tinymce.plugins.table.selection.CellSelection",
+    "tinymce.plugins.table.ui.Dialogs",
+    "tinymce.plugins.table.ui.ResizeBars",
+    "tinymce.plugins.table.util.Quirks",
+  ], function (
+    TreeWalker,
+    Env,
+    PluginManager,
+    Tools,
+    VK,
+    TableGrid,
+    CellSelection,
+    Dialogs,
+    ResizeBars,
+    Quirks,
+  ) {
     var each = Tools.each;
 
     function Plugin(editor) {
-      var clipboardRows, self = this, dialogs = new Dialogs(editor), resizeBars;
+      var clipboardRows,
+        self = this,
+        dialogs = new Dialogs(editor),
+        resizeBars;
 
-      if (editor.settings.object_resizing && editor.settings.table_resize_bars !== false &&
-        (editor.settings.object_resizing === true || editor.settings.object_resizing === 'table')) {
+      if (
+        editor.settings.object_resizing &&
+        editor.settings.table_resize_bars !== false &&
+        (editor.settings.object_resizing === true ||
+          editor.settings.object_resizing === "table")
+      ) {
         resizeBars = ResizeBars(editor);
       }
 
@@ -4195,37 +4576,44 @@ define(
         html = '<table id="__mce"><tbody>';
 
         for (y = 0; y < rows; y++) {
-          html += '<tr>';
+          html += "<tr>";
 
           for (x = 0; x < cols; x++) {
-            html += '<td>' + (Env.ie && Env.ie < 10 ? '&nbsp;' : '<br>') + '</td>';
+            html +=
+              "<td>" + (Env.ie && Env.ie < 10 ? "&nbsp;" : "<br>") + "</td>";
           }
 
-          html += '</tr>';
+          html += "</tr>";
         }
 
-        html += '</tbody></table>';
+        html += "</tbody></table>";
 
         editor.undoManager.transact(function () {
           editor.insertContent(html);
 
-          tableElm = editor.dom.get('__mce');
-          editor.dom.setAttrib(tableElm, 'id', null);
+          tableElm = editor.dom.get("__mce");
+          editor.dom.setAttrib(tableElm, "id", null);
 
-          editor.$('tr', tableElm).each(function (index, row) {
-            editor.fire('newrow', {
-              node: row
+          editor.$("tr", tableElm).each(function (index, row) {
+            editor.fire("newrow", {
+              node: row,
             });
 
-            editor.$('th,td', row).each(function (index, cell) {
-              editor.fire('newcell', {
-                node: cell
+            editor.$("th,td", row).each(function (index, cell) {
+              editor.fire("newcell", {
+                node: cell,
               });
             });
           });
 
-          editor.dom.setAttribs(tableElm, editor.settings.table_default_attributes || {});
-          editor.dom.setStyles(tableElm, editor.settings.table_default_styles || {});
+          editor.dom.setAttribs(
+            tableElm,
+            editor.settings.table_default_attributes || {},
+          );
+          editor.dom.setStyles(
+            tableElm,
+            editor.settings.table_default_styles || {},
+          );
         });
 
         return tableElm;
@@ -4233,9 +4621,15 @@ define(
 
       function handleDisabledState(ctrl, selector, sameParts) {
         function bindStateListener() {
-          var selectedElm, selectedCells, parts = {}, sum = 0, state;
+          var selectedElm,
+            selectedCells,
+            parts = {},
+            sum = 0,
+            state;
 
-          selectedCells = editor.dom.select('td[data-mce-selected],th[data-mce-selected]');
+          selectedCells = editor.dom.select(
+            "td[data-mce-selected],th[data-mce-selected]",
+          );
           selectedElm = selectedCells[0];
           if (!selectedElm) {
             selectedElm = editor.selection.getStart();
@@ -4244,7 +4638,7 @@ define(
           // Make sure that we don't have a selection inside thead and tbody at the same time
           if (sameParts && selectedCells.length > 0) {
             each(selectedCells, function (cell) {
-              return parts[cell.parentNode.parentNode.nodeName] = 1;
+              return (parts[cell.parentNode.parentNode.nodeName] = 1);
             });
 
             each(parts, function (value) {
@@ -4266,42 +4660,50 @@ define(
         if (editor.initialized) {
           bindStateListener();
         } else {
-          editor.on('init', bindStateListener);
+          editor.on("init", bindStateListener);
         }
       }
 
       function postRender() {
         /*jshint validthis:true*/
-        handleDisabledState(this, 'table');
+        handleDisabledState(this, "table");
       }
 
       function postRenderCell() {
         /*jshint validthis:true*/
-        handleDisabledState(this, 'td,th');
+        handleDisabledState(this, "td,th");
       }
 
       function postRenderMergeCell() {
         /*jshint validthis:true*/
-        handleDisabledState(this, 'td,th', true);
+        handleDisabledState(this, "td,th", true);
       }
 
       function generateTableGrid() {
-        var html = '';
+        var html = "";
 
-        html = '<table role="grid" class="mce-grid mce-grid-border" aria-readonly="true">';
+        html =
+          '<table role="grid" class="mce-grid mce-grid-border" aria-readonly="true">';
 
         for (var y = 0; y < 10; y++) {
-          html += '<tr>';
+          html += "<tr>";
 
           for (var x = 0; x < 10; x++) {
-            html += '<td role="gridcell" tabindex="-1"><a id="mcegrid' + (y * 10 + x) + '" href="#" ' +
-              'data-mce-x="' + x + '" data-mce-y="' + y + '"></a></td>';
+            html +=
+              '<td role="gridcell" tabindex="-1"><a id="mcegrid' +
+              (y * 10 + x) +
+              '" href="#" ' +
+              'data-mce-x="' +
+              x +
+              '" data-mce-y="' +
+              y +
+              '"></a></td>';
           }
 
-          html += '</tr>';
+          html += "</tr>";
         }
 
-        html += '</table>';
+        html += "</table>";
 
         html += '<div class="mce-text-center" role="presentation">1 x 1</div>';
 
@@ -4309,11 +4711,11 @@ define(
       }
 
       function selectGrid(tx, ty, control) {
-        var table = control.getEl().getElementsByTagName('table')[0];
+        var table = control.getEl().getElementsByTagName("table")[0];
         var x, y, focusCell, cell, active;
-        var rtl = control.isRtl() || control.parent().rel == 'tl-tr';
+        var rtl = control.isRtl() || control.parent().rel == "tl-tr";
 
-        table.nextSibling.innerHTML = (tx + 1) + ' x ' + (ty + 1);
+        table.nextSibling.innerHTML = tx + 1 + " x " + (ty + 1);
 
         if (rtl) {
           tx = 9 - tx;
@@ -4324,7 +4726,7 @@ define(
             cell = table.rows[y].childNodes[x].firstChild;
             active = (rtl ? x >= tx : x <= tx) && y <= ty;
 
-            editor.dom.toggleClass(cell, 'mce-active', active);
+            editor.dom.toggleClass(cell, "mce-active", active);
 
             if (active) {
               focusCell = cell;
@@ -4336,17 +4738,17 @@ define(
       }
 
       if (editor.settings.table_grid === false) {
-        editor.addMenuItem('inserttable', {
-          text: 'Table',
-          icon: 'table',
-          context: 'table',
-          onclick: dialogs.table
+        editor.addMenuItem("inserttable", {
+          text: "Table",
+          icon: "table",
+          context: "table",
+          onclick: dialogs.table,
         });
       } else {
-        editor.addMenuItem('inserttable', {
-          text: 'Table',
-          icon: 'table',
-          context: 'table',
+        editor.addMenuItem("inserttable", {
+          text: "Table",
+          icon: "table",
+          context: "table",
           ariaHideMenu: true,
           onclick: function (e) {
             if (e.aria) {
@@ -4359,13 +4761,16 @@ define(
             selectGrid(0, 0, this.menu.items()[0]);
           },
           onhide: function () {
-            var elements = this.menu.items()[0].getEl().getElementsByTagName('a');
-            editor.dom.removeClass(elements, 'mce-active');
-            editor.dom.addClass(elements[0], 'mce-active');
+            var elements = this.menu
+              .items()[0]
+              .getEl()
+              .getElementsByTagName("a");
+            editor.dom.removeClass(elements, "mce-active");
+            editor.dom.addClass(elements[0], "mce-active");
           },
           menu: [
             {
-              type: 'container',
+              type: "container",
               html: generateTableGrid(),
 
               onPostRender: function () {
@@ -4373,13 +4778,15 @@ define(
               },
 
               onmousemove: function (e) {
-                var target = e.target, x, y;
+                var target = e.target,
+                  x,
+                  y;
 
-                if (target.tagName.toUpperCase() == 'A') {
-                  x = parseInt(target.getAttribute('data-mce-x'), 10);
-                  y = parseInt(target.getAttribute('data-mce-y'), 10);
+                if (target.tagName.toUpperCase() == "A") {
+                  x = parseInt(target.getAttribute("data-mce-x"), 10);
+                  y = parseInt(target.getAttribute("data-mce-y"), 10);
 
-                  if (this.isRtl() || this.parent().rel == 'tl-tr') {
+                  if (this.isRtl() || this.parent().rel == "tl-tr") {
                     x = 9 - x;
                   }
 
@@ -4395,7 +4802,7 @@ define(
               onclick: function (e) {
                 var self = this;
 
-                if (e.target.tagName.toUpperCase() == 'A') {
+                if (e.target.tagName.toUpperCase() == "A") {
                   e.preventDefault();
                   e.stopPropagation();
                   self.parent().cancel();
@@ -4406,84 +4813,143 @@ define(
 
                   editor.addVisual();
                 }
-              }
-            }
-          ]
+              },
+            },
+          ],
         });
       }
 
-      editor.addMenuItem('tableprops', {
-        text: 'Table properties',
-        context: 'table',
+      editor.addMenuItem("tableprops", {
+        text: "Table properties",
+        context: "table",
         onPostRender: postRender,
-        onclick: dialogs.tableProps
+        onclick: dialogs.tableProps,
       });
 
-      editor.addMenuItem('deletetable', {
-        text: 'Delete table',
-        context: 'table',
+      editor.addMenuItem("deletetable", {
+        text: "Delete table",
+        context: "table",
         onPostRender: postRender,
-        cmd: 'mceTableDelete'
+        cmd: "mceTableDelete",
       });
 
-      editor.addMenuItem('cell', {
-        separator: 'before',
-        text: 'Cell',
-        context: 'table',
+      editor.addMenuItem("cell", {
+        separator: "before",
+        text: "Cell",
+        context: "table",
         menu: [
-          { text: 'Cell properties', onclick: cmd('mceTableCellProps'), onPostRender: postRenderCell },
-          { text: 'Merge cells', onclick: cmd('mceTableMergeCells'), onPostRender: postRenderMergeCell },
-          { text: 'Split cell', onclick: cmd('mceTableSplitCells'), onPostRender: postRenderCell }
-        ]
+          {
+            text: "Cell properties",
+            onclick: cmd("mceTableCellProps"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Merge cells",
+            onclick: cmd("mceTableMergeCells"),
+            onPostRender: postRenderMergeCell,
+          },
+          {
+            text: "Split cell",
+            onclick: cmd("mceTableSplitCells"),
+            onPostRender: postRenderCell,
+          },
+        ],
       });
 
-      editor.addMenuItem('row', {
-        text: 'Row',
-        context: 'table',
+      editor.addMenuItem("row", {
+        text: "Row",
+        context: "table",
         menu: [
-          { text: 'Insert row before', onclick: cmd('mceTableInsertRowBefore'), onPostRender: postRenderCell },
-          { text: 'Insert row after', onclick: cmd('mceTableInsertRowAfter'), onPostRender: postRenderCell },
-          { text: 'Delete row', onclick: cmd('mceTableDeleteRow'), onPostRender: postRenderCell },
-          { text: 'Row properties', onclick: cmd('mceTableRowProps'), onPostRender: postRenderCell },
-          { text: '-' },
-          { text: 'Cut row', onclick: cmd('mceTableCutRow'), onPostRender: postRenderCell },
-          { text: 'Copy row', onclick: cmd('mceTableCopyRow'), onPostRender: postRenderCell },
-          { text: 'Paste row before', onclick: cmd('mceTablePasteRowBefore'), onPostRender: postRenderCell },
-          { text: 'Paste row after', onclick: cmd('mceTablePasteRowAfter'), onPostRender: postRenderCell }
-        ]
+          {
+            text: "Insert row before",
+            onclick: cmd("mceTableInsertRowBefore"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Insert row after",
+            onclick: cmd("mceTableInsertRowAfter"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Delete row",
+            onclick: cmd("mceTableDeleteRow"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Row properties",
+            onclick: cmd("mceTableRowProps"),
+            onPostRender: postRenderCell,
+          },
+          { text: "-" },
+          {
+            text: "Cut row",
+            onclick: cmd("mceTableCutRow"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Copy row",
+            onclick: cmd("mceTableCopyRow"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Paste row before",
+            onclick: cmd("mceTablePasteRowBefore"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Paste row after",
+            onclick: cmd("mceTablePasteRowAfter"),
+            onPostRender: postRenderCell,
+          },
+        ],
       });
 
-      editor.addMenuItem('column', {
-        text: 'Column',
-        context: 'table',
+      editor.addMenuItem("column", {
+        text: "Column",
+        context: "table",
         menu: [
-          { text: 'Insert column before', onclick: cmd('mceTableInsertColBefore'), onPostRender: postRenderCell },
-          { text: 'Insert column after', onclick: cmd('mceTableInsertColAfter'), onPostRender: postRenderCell },
-          { text: 'Delete column', onclick: cmd('mceTableDeleteCol'), onPostRender: postRenderCell }
-        ]
+          {
+            text: "Insert column before",
+            onclick: cmd("mceTableInsertColBefore"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Insert column after",
+            onclick: cmd("mceTableInsertColAfter"),
+            onPostRender: postRenderCell,
+          },
+          {
+            text: "Delete column",
+            onclick: cmd("mceTableDeleteCol"),
+            onPostRender: postRenderCell,
+          },
+        ],
       });
 
       var menuItems = [];
-      each("inserttable tableprops deletetable | cell row column".split(' '), function (name) {
-        if (name == '|') {
-          menuItems.push({ text: '-' });
-        } else {
-          menuItems.push(editor.menuItems[name]);
-        }
-      });
+      each(
+        "inserttable tableprops deletetable | cell row column".split(" "),
+        function (name) {
+          if (name == "|") {
+            menuItems.push({ text: "-" });
+          } else {
+            menuItems.push(editor.menuItems[name]);
+          }
+        },
+      );
 
       editor.addButton("table", {
         type: "menubutton",
         title: "Table",
-        menu: menuItems
+        menu: menuItems,
       });
 
       // Select whole table is a table border is clicked
       if (!Env.isIE) {
-        editor.on('click', function (e) {
+        editor.on("click", function (e) {
           e = e.target;
 
-          if (e.nodeName === 'TABLE') {
+          if (e.nodeName === "TABLE") {
             editor.selection.select(e);
             editor.nodeChanged();
           }
@@ -4492,7 +4958,7 @@ define(
 
       self.quirks = new Quirks(editor);
 
-      editor.on('Init', function () {
+      editor.on("Init", function () {
         self.cellSelection = new CellSelection(editor, function (selecting) {
           if (selecting && resizeBars) {
             resizeBars.clearBars();
@@ -4501,205 +4967,213 @@ define(
         self.resizeBars = resizeBars;
       });
 
-      editor.on('PreInit', function () {
+      editor.on("PreInit", function () {
         // Remove internal data attributes
         editor.serializer.addAttributeFilter(
-          'data-mce-cell-padding,data-mce-border,data-mce-border-color',
+          "data-mce-cell-padding,data-mce-border,data-mce-border-color",
           function (nodes, name) {
-
             var i = nodes.length;
 
             while (i--) {
               nodes[i].attr(name, null);
             }
-          });
+          },
+        );
       });
 
       // Register action commands
-      each({
-        mceTableSplitCells: function (grid) {
-          grid.split();
+      each(
+        {
+          mceTableSplitCells: function (grid) {
+            grid.split();
+          },
+
+          mceTableMergeCells: function (grid) {
+            var cell;
+
+            cell = editor.dom.getParent(editor.selection.getStart(), "th,td");
+
+            if (
+              !editor.dom.select("td[data-mce-selected],th[data-mce-selected]")
+                .length
+            ) {
+              dialogs.merge(grid, cell);
+            } else {
+              grid.merge();
+            }
+          },
+
+          mceTableInsertRowBefore: function (grid) {
+            grid.insertRows(true);
+          },
+
+          mceTableInsertRowAfter: function (grid) {
+            grid.insertRows();
+          },
+
+          mceTableInsertColBefore: function (grid) {
+            grid.insertCols(true);
+          },
+
+          mceTableInsertColAfter: function (grid) {
+            grid.insertCols();
+          },
+
+          mceTableDeleteCol: function (grid) {
+            grid.deleteCols();
+          },
+
+          mceTableDeleteRow: function (grid) {
+            grid.deleteRows();
+          },
+
+          mceTableCutRow: function (grid) {
+            clipboardRows = grid.cutRows();
+          },
+
+          mceTableCopyRow: function (grid) {
+            clipboardRows = grid.copyRows();
+          },
+
+          mceTablePasteRowBefore: function (grid) {
+            grid.pasteRows(clipboardRows, true);
+          },
+
+          mceTablePasteRowAfter: function (grid) {
+            grid.pasteRows(clipboardRows);
+          },
+
+          mceSplitColsBefore: function (grid) {
+            grid.splitCols(true);
+          },
+
+          mceSplitColsAfter: function (grid) {
+            grid.splitCols(false);
+          },
+
+          mceTableDelete: function (grid) {
+            if (resizeBars) {
+              resizeBars.clearBars();
+            }
+            grid.deleteTable();
+          },
         },
+        function (func, name) {
+          editor.addCommand(name, function () {
+            var grid = new TableGrid(editor);
 
-        mceTableMergeCells: function (grid) {
-          var cell;
-
-          cell = editor.dom.getParent(editor.selection.getStart(), 'th,td');
-
-          if (!editor.dom.select('td[data-mce-selected],th[data-mce-selected]').length) {
-            dialogs.merge(grid, cell);
-          } else {
-            grid.merge();
-          }
+            if (grid) {
+              func(grid);
+              editor.execCommand("mceRepaint");
+              self.cellSelection.clear();
+            }
+          });
         },
-
-        mceTableInsertRowBefore: function (grid) {
-          grid.insertRows(true);
-        },
-
-        mceTableInsertRowAfter: function (grid) {
-          grid.insertRows();
-        },
-
-        mceTableInsertColBefore: function (grid) {
-          grid.insertCols(true);
-        },
-
-        mceTableInsertColAfter: function (grid) {
-          grid.insertCols();
-        },
-
-        mceTableDeleteCol: function (grid) {
-          grid.deleteCols();
-        },
-
-        mceTableDeleteRow: function (grid) {
-          grid.deleteRows();
-        },
-
-        mceTableCutRow: function (grid) {
-          clipboardRows = grid.cutRows();
-        },
-
-        mceTableCopyRow: function (grid) {
-          clipboardRows = grid.copyRows();
-        },
-
-        mceTablePasteRowBefore: function (grid) {
-          grid.pasteRows(clipboardRows, true);
-        },
-
-        mceTablePasteRowAfter: function (grid) {
-          grid.pasteRows(clipboardRows);
-        },
-
-        mceSplitColsBefore: function (grid) {
-          grid.splitCols(true);
-        },
-
-        mceSplitColsAfter: function (grid) {
-          grid.splitCols(false);
-        },
-
-        mceTableDelete: function (grid) {
-          if (resizeBars) {
-            resizeBars.clearBars();
-          }
-          grid.deleteTable();
-        }
-      }, function (func, name) {
-        editor.addCommand(name, function () {
-          var grid = new TableGrid(editor);
-
-          if (grid) {
-            func(grid);
-            editor.execCommand('mceRepaint');
-            self.cellSelection.clear();
-          }
-        });
-      });
+      );
 
       // Register dialog commands
-      each({
-        mceInsertTable: dialogs.table,
-        mceTableProps: function () {
-          dialogs.table(true);
+      each(
+        {
+          mceInsertTable: dialogs.table,
+          mceTableProps: function () {
+            dialogs.table(true);
+          },
+          mceTableRowProps: dialogs.row,
+          mceTableCellProps: dialogs.cell,
         },
-        mceTableRowProps: dialogs.row,
-        mceTableCellProps: dialogs.cell
-      }, function (func, name) {
-        editor.addCommand(name, function (ui, val) {
-          func(val);
-        });
-      });
+        function (func, name) {
+          editor.addCommand(name, function (ui, val) {
+            func(val);
+          });
+        },
+      );
 
       function addButtons() {
-        editor.addButton('tableprops', {
-          title: 'Table properties',
+        editor.addButton("tableprops", {
+          title: "Table properties",
           onclick: dialogs.tableProps,
-          icon: 'table'
+          icon: "table",
         });
 
-        editor.addButton('tabledelete', {
-          title: 'Delete table',
-          onclick: cmd('mceTableDelete')
+        editor.addButton("tabledelete", {
+          title: "Delete table",
+          onclick: cmd("mceTableDelete"),
         });
 
-        editor.addButton('tablecellprops', {
-          title: 'Cell properties',
-          onclick: cmd('mceTableCellProps')
+        editor.addButton("tablecellprops", {
+          title: "Cell properties",
+          onclick: cmd("mceTableCellProps"),
         });
 
-        editor.addButton('tablemergecells', {
-          title: 'Merge cells',
-          onclick: cmd('mceTableMergeCells')
+        editor.addButton("tablemergecells", {
+          title: "Merge cells",
+          onclick: cmd("mceTableMergeCells"),
         });
 
-        editor.addButton('tablesplitcells', {
-          title: 'Split cell',
-          onclick: cmd('mceTableSplitCells')
+        editor.addButton("tablesplitcells", {
+          title: "Split cell",
+          onclick: cmd("mceTableSplitCells"),
         });
 
-        editor.addButton('tableinsertrowbefore', {
-          title: 'Insert row before',
-          onclick: cmd('mceTableInsertRowBefore')
+        editor.addButton("tableinsertrowbefore", {
+          title: "Insert row before",
+          onclick: cmd("mceTableInsertRowBefore"),
         });
 
-        editor.addButton('tableinsertrowafter', {
-          title: 'Insert row after',
-          onclick: cmd('mceTableInsertRowAfter')
+        editor.addButton("tableinsertrowafter", {
+          title: "Insert row after",
+          onclick: cmd("mceTableInsertRowAfter"),
         });
 
-        editor.addButton('tabledeleterow', {
-          title: 'Delete row',
-          onclick: cmd('mceTableDeleteRow')
+        editor.addButton("tabledeleterow", {
+          title: "Delete row",
+          onclick: cmd("mceTableDeleteRow"),
         });
 
-        editor.addButton('tablerowprops', {
-          title: 'Row properties',
-          onclick: cmd('mceTableRowProps')
+        editor.addButton("tablerowprops", {
+          title: "Row properties",
+          onclick: cmd("mceTableRowProps"),
         });
 
-        editor.addButton('tablecutrow', {
-          title: 'Cut row',
-          onclick: cmd('mceTableCutRow')
+        editor.addButton("tablecutrow", {
+          title: "Cut row",
+          onclick: cmd("mceTableCutRow"),
         });
 
-        editor.addButton('tablecopyrow', {
-          title: 'Copy row',
-          onclick: cmd('mceTableCopyRow')
+        editor.addButton("tablecopyrow", {
+          title: "Copy row",
+          onclick: cmd("mceTableCopyRow"),
         });
 
-        editor.addButton('tablepasterowbefore', {
-          title: 'Paste row before',
-          onclick: cmd('mceTablePasteRowBefore')
+        editor.addButton("tablepasterowbefore", {
+          title: "Paste row before",
+          onclick: cmd("mceTablePasteRowBefore"),
         });
 
-        editor.addButton('tablepasterowafter', {
-          title: 'Paste row after',
-          onclick: cmd('mceTablePasteRowAfter')
+        editor.addButton("tablepasterowafter", {
+          title: "Paste row after",
+          onclick: cmd("mceTablePasteRowAfter"),
         });
 
-        editor.addButton('tableinsertcolbefore', {
-          title: 'Insert column before',
-          onclick: cmd('mceTableInsertColBefore')
+        editor.addButton("tableinsertcolbefore", {
+          title: "Insert column before",
+          onclick: cmd("mceTableInsertColBefore"),
         });
 
-        editor.addButton('tableinsertcolafter', {
-          title: 'Insert column after',
-          onclick: cmd('mceTableInsertColAfter')
+        editor.addButton("tableinsertcolafter", {
+          title: "Insert column after",
+          onclick: cmd("mceTableInsertColAfter"),
         });
 
-        editor.addButton('tabledeletecol', {
-          title: 'Delete column',
-          onclick: cmd('mceTableDeleteCol')
+        editor.addButton("tabledeletecol", {
+          title: "Delete column",
+          onclick: cmd("mceTableDeleteCol"),
         });
-
       }
 
       function isTable(table) {
-
-        var selectorMatched = editor.dom.is(table, 'table') && editor.getBody().contains(table);
+        var selectorMatched =
+          editor.dom.is(table, "table") && editor.getBody().contains(table);
 
         return selectorMatched;
       }
@@ -4707,20 +5181,18 @@ define(
       function addToolbars() {
         var toolbarItems = editor.settings.table_toolbar;
 
-        if (toolbarItems === '' || toolbarItems === false) {
+        if (toolbarItems === "" || toolbarItems === false) {
           return;
         }
 
         if (!toolbarItems) {
-          toolbarItems = 'tableprops tabledelete | ' +
-            'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
-            'tableinsertcolbefore tableinsertcolafter tabledeletecol';
+          toolbarItems =
+            "tableprops tabledelete | " +
+            "tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+            "tableinsertcolbefore tableinsertcolafter tabledeletecol";
         }
 
-        editor.addContextToolbar(
-          isTable,
-          toolbarItems
-        );
+        editor.addContextToolbar(isTable, toolbarItems);
       }
 
       function getClipboardRows() {
@@ -4736,16 +5208,16 @@ define(
 
       // Enable tab key cell navigation
       if (editor.settings.table_tab_navigation !== false) {
-        editor.on('keydown', function (e) {
+        editor.on("keydown", function (e) {
           var cellElm, grid, delta;
           var selectionStart = editor.selection.getStart();
 
           if (e.keyCode === VK.TAB) {
-            if (editor.dom.getParent(selectionStart, 'LI,DT,DD')) {
+            if (editor.dom.getParent(selectionStart, "LI,DT,DD")) {
               return;
             }
 
-            cellElm = editor.dom.getParent(selectionStart, 'th,td');
+            cellElm = editor.dom.getParent(selectionStart, "th,td");
 
             if (cellElm) {
               e.preventDefault();
@@ -4770,11 +5242,10 @@ define(
       self.getClipboardRows = getClipboardRows;
     }
 
-    PluginManager.add('table', Plugin);
+    PluginManager.add("table", Plugin);
 
-    return function () { };
-  }
-);
+    return function () {};
+  });
 
-dem('tinymce.plugins.table.Plugin')();
+  dem("tinymce.plugins.table.Plugin")();
 })();

@@ -3,12 +3,12 @@
 Main components 
 
 -------------------------------- */
-header[role=banner] {
+header[role="banner"] {
   position: relative;
   height: 50px;
   background: #343642;
 }
-header[role=banner] #cd-logo {
+header[role="banner"] #cd-logo {
   float: left;
   margin: 4px 0 0 5%;
   /* reduce logo size on mobile and make sure it is left aligned with the transform-origin property */
@@ -23,20 +23,20 @@ header[role=banner] #cd-logo {
   -o-transform: scale(0.8);
   transform: scale(0.8);
 }
-header[role=banner] #cd-logo img {
+header[role="banner"] #cd-logo img {
   display: block;
 }
-header[role=banner]::after {
+header[role="banner"]::after {
   /* clearfix */
-  content: '';
+  content: "";
   display: table;
   clear: both;
 }
 @media only screen and (min-width: 768px) {
-  header[role=banner] {
+  header[role="banner"] {
     height: 80px;
   }
-  header[role=banner] #cd-logo {
+  header[role="banner"] #cd-logo {
     margin: 20px 0 0 5%;
     -webkit-transform: scale(1);
     -moz-transform: scale(1);
@@ -117,7 +117,8 @@ header[role=banner]::after {
     /* line-height: normal; */
     /* background: transparent; */
   }
-  .main-nav a.cd-signin, .main-nav a.cd-signup {
+  .main-nav a.cd-signin,
+  .main-nav a.cd-signup {
     /* padding: .6em 1em; */
     /* border: 1px solid rgba(255, 255, 255, 0.6); */
     /* border-radius: 50em; */
@@ -147,17 +148,29 @@ xsigin/signup popup
   cursor: pointer;
   visibility: hidden;
   opacity: 0;
-  -webkit-transition: opacity 0.3s 0, visibility 0 0.3s;
-  -moz-transition: opacity 0.3s 0, visibility 0 0.3s;
-  transition: opacity 0.3s 0, visibility 0 0.3s;
+  -webkit-transition:
+    opacity 0.3s 0,
+    visibility 0 0.3s;
+  -moz-transition:
+    opacity 0.3s 0,
+    visibility 0 0.3s;
+  transition:
+    opacity 0.3s 0,
+    visibility 0 0.3s;
 }
 .cd-user-modal.is-visible {
   visibility: visible;
   opacity: 1;
   z-index: 999999;
-  -webkit-transition: opacity 0.3s 0, visibility 0 0;
-  -moz-transition: opacity 0.3s 0, visibility 0 0;
-  transition: opacity 0.3s 0, visibility 0 0;
+  -webkit-transition:
+    opacity 0.3s 0,
+    visibility 0 0;
+  -moz-transition:
+    opacity 0.3s 0,
+    visibility 0 0;
+  transition:
+    opacity 0.3s 0,
+    visibility 0 0;
 }
 .cd-user-modal.is-visible .cd-user-modal-container {
   -webkit-transform: translateY(0);
@@ -171,7 +184,7 @@ xsigin/signup popup
   position: relative;
   width: 90%;
   max-width: 600px;
-  background: #FFF;
+  background: #fff;
   margin: 3em auto 4em;
   cursor: auto;
   border-radius: 0.25em;
@@ -198,10 +211,10 @@ xsigin/signup popup
   text-align: center;
 }
 .cd-user-modal-container .cd-switcher li:first-child a {
-  border-radius: .25em 0 0 0;
+  border-radius: 0.25em 0 0 0;
 }
 .cd-user-modal-container .cd-switcher li:last-child a {
-  border-radius: 0 .25em 0 0;
+  border-radius: 0 0.25em 0 0;
 }
 .cd-user-modal-container .cd-switcher a {
   display: block;
@@ -212,7 +225,7 @@ xsigin/signup popup
   color: #809191;
 }
 .cd-user-modal-container .cd-switcher a.selected {
-  background: #FFF;
+  background: #fff;
   color: #505260;
 }
 @media only screen and (min-width: 600px) {
@@ -300,15 +313,15 @@ xsigin/signup popup
 .cd-form input.has-error {
   border: 1px solid #d76666;
 }
-.cd-form input[type=password] {
+.cd-form input[type="password"] {
   /* space left for the HIDE button */
   padding-right: 65px;
 }
-.cd-form input[type=submit] {
+.cd-form input[type="submit"] {
   padding: 16px 0;
   cursor: pointer;
   background: #2f889a;
-  color: #FFF;
+  color: #fff;
   font-weight: bold;
   border: none;
   -webkit-appearance: none;
@@ -317,7 +330,8 @@ xsigin/signup popup
   -o-appearance: none;
   appearance: none;
 }
-.no-touch .cd-form input[type=submit]:hover, .no-touch .cd-form input[type=submit]:focus {
+.no-touch .cd-form input[type="submit"]:hover,
+.no-touch .cd-form input[type="submit"]:focus {
   background: #3599ae;
   outline: none;
 }
@@ -345,9 +359,9 @@ xsigin/signup popup
   left: -5px;
   bottom: -35px;
   background: rgba(215, 102, 102, 0.9);
-  padding: .8em;
+  padding: 0.8em;
   z-index: 2;
-  color: #FFF;
+  color: #fff;
   font-size: 13px;
   font-size: 0.8125rem;
   border-radius: 0.25em;
@@ -355,13 +369,19 @@ xsigin/signup popup
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
-  -webkit-transition: opacity 0.2s 0, visibility 0 0.2s;
-  -moz-transition: opacity 0.2s 0, visibility 0 0.2s;
-  transition: opacity 0.2s 0, visibility 0 0.2s;
+  -webkit-transition:
+    opacity 0.2s 0,
+    visibility 0 0.2s;
+  -moz-transition:
+    opacity 0.2s 0,
+    visibility 0 0.2s;
+  transition:
+    opacity 0.2s 0,
+    visibility 0 0.2s;
 }
 .cd-form .cd-error-message::after {
   /* triangle */
-  content: '';
+  content: "";
   position: absolute;
   left: 22px;
   bottom: 100%;
@@ -374,9 +394,15 @@ xsigin/signup popup
 .cd-form .cd-error-message.is-visible {
   opacity: 1;
   visibility: visible;
-  -webkit-transition: opacity 0.2s 0, visibility 0 0;
-  -moz-transition: opacity 0.2s 0, visibility 0 0;
-  transition: opacity 0.2s 0, visibility 0 0;
+  -webkit-transition:
+    opacity 0.2s 0,
+    visibility 0 0;
+  -moz-transition:
+    opacity 0.2s 0,
+    visibility 0 0;
+  transition:
+    opacity 0.2s 0,
+    visibility 0 0;
 }
 @media only screen and (min-width: 600px) {
   .cd-form {
@@ -394,7 +420,7 @@ xsigin/signup popup
   .cd-form input.has-padding {
     padding: 16px 20px 16px 50px;
   }
-  .cd-form input[type=submit] {
+  .cd-form input[type="submit"] {
     padding: 16px 0;
   }
 }
@@ -422,7 +448,7 @@ xsigin/signup popup
   font-size: 0.875rem;
 }
 .cd-form-bottom-message a {
-  color: #FFF;
+  color: #fff;
   text-decoration: underline;
 }
 
@@ -434,19 +460,20 @@ xsigin/signup popup
   height: 40px;
   right: 0;
   top: -40px;
-  background: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/148866/cd-icon-close.svg") no-repeat center center;
+  background: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/148866/cd-icon-close.svg")
+    no-repeat center center;
   text-indent: 100%;
   white-space: nowrap;
   overflow: hidden;
 }
 .course-img {
-    width: 30%;
+  width: 30%;
 }
 .course-img img {
-    width: 100%;
+  width: 100%;
 }
 .left {
-    width: 70%;
+  width: 70%;
 }
 @media only screen and (min-width: 1170px) {
   .cd-close-form {
@@ -454,12 +481,14 @@ xsigin/signup popup
   }
 }
 
-#cd-login, #cd-signup, #cd-reset-password {
+#cd-login,
+#cd-signup,
+#cd-reset-password {
   display: none;
 }
 
-#cd-login.is-selected, #cd-signup.is-selected, #cd-reset-password.is-selected {
+#cd-login.is-selected,
+#cd-signup.is-selected,
+#cd-reset-password.is-selected {
   display: block;
 }
-
-

@@ -7,10 +7,18 @@
   padding: 0;
   width: $sidebar-width-lg;
   z-index: 11;
-  transition: width $action-transition-duration $action-transition-timing-function, background $action-transition-duration $action-transition-timing-function;
-  -webkit-transition: width $action-transition-duration $action-transition-timing-function, background $action-transition-duration $action-transition-timing-function;
-  -moz-transition: width $action-transition-duration $action-transition-timing-function, background $action-transition-duration $action-transition-timing-function;
-  -ms-transition: width $action-transition-duration $action-transition-timing-function, background $action-transition-duration $action-transition-timing-function;
+  transition:
+    width $action-transition-duration $action-transition-timing-function,
+    background $action-transition-duration $action-transition-timing-function;
+  -webkit-transition:
+    width $action-transition-duration $action-transition-timing-function,
+    background $action-transition-duration $action-transition-timing-function;
+  -moz-transition:
+    width $action-transition-duration $action-transition-timing-function,
+    background $action-transition-duration $action-transition-timing-function;
+  -ms-transition:
+    width $action-transition-duration $action-transition-timing-function,
+    background $action-transition-duration $action-transition-timing-function;
   .nav {
     overflow: hidden;
     flex-wrap: nowrap;
@@ -82,7 +90,7 @@
         }
       }
       &.active {
-        >.nav-link {
+        > .nav-link {
           color: $sidebar-light-menu-active-color;
           .menu-title,
           i {
@@ -125,10 +133,10 @@
       }
     }
     &:not(.sub-menu) {
-      >.nav-item {
+      > .nav-item {
         &:hover {
           &:not(.nav-profile) {
-            >.nav-link {
+            > .nav-link {
               background: $sidebar-light-menu-hover-bg;
               color: $sidebar-light-menu-hover-color;
             }
@@ -155,7 +163,7 @@
           }
         }
         &:hover {
-          >.nav-link {
+          > .nav-link {
             background: $sidebar-light-submenu-hover-bg;
             color: $sidebar-light-submenu-hover-color;
             &:before {
@@ -208,7 +216,7 @@
             &:before {
               background: $sidebar-dark-profile-name-color;
             }
-            >span {
+            > span {
               background: $sidebar-dark-menu-active-bg;
               i {
                 color: color(gray-light);
@@ -217,7 +225,7 @@
           }
         }
         &.active {
-          >.nav-link {
+          > .nav-link {
             color: $sidebar-dark-menu-active-color;
           }
         }
@@ -226,10 +234,10 @@
         }
       }
       &:not(.sub-menu) {
-        >.nav-item {
+        > .nav-item {
           &:hover {
             &:not(.nav-profile) {
-              >.nav-link {
+              > .nav-link {
                 background: $sidebar-dark-menu-hover-bg;
                 color: $sidebar-dark-menu-hover-color;
               }
@@ -249,7 +257,7 @@
             }
           }
           &:hover {
-            >.nav-link {
+            > .nav-link {
               background: $sidebar-dark-submenu-hover-bg;
               color: $sidebar-dark-submenu-hover-color;
               &:before {

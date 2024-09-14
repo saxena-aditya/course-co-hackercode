@@ -12,25 +12,23 @@
   }
 
   // Launch full screen for browsers that support it!
-  document.getElementById('f-btn').addEventListener('click', function (e) {
-    console.log('sd');
+  document.getElementById("f-btn").addEventListener("click", function (e) {
+    console.log("sd");
     launchIntoFullscreen(document.documentElement);
-
-  })
+  });
   const myQuestions = [];
 
   /* function for getting test data */
-  $.get('http://localhost:3000/', function (data, status) {
+  $.get("http://localhost:3000/", function (data, status) {
     console.log(data);
     const test = { ...data };
 
     //console.log(test);
     //console.log(test.question_set);
-    if (data == 0)
-      return;//if test was not received here
+    if (data == 0) return; //if test was not received here
 
     /* result will hold the keys of the object now we can acces each object */
-    let result = Object.keys((test.question_set));
+    let result = Object.keys(test.question_set);
     console.log(result);
 
     result.map((key) => {
@@ -38,16 +36,11 @@
       test.question_set[key].questions.map((question) => {
         myQuestions.push({
           question: question,
-          options: options
-        })
-      })
-    })
-  })
-
-
-
-
-
+          options: options,
+        });
+      });
+    });
+  });
 
   function buildQuiz() {
     // we'll need a place to store the HTML output
@@ -66,7 +59,7 @@
              <input type="radio" name="question${questionNumber}" value="${letter}">
               ${letter} :
               ${currentQuestion.answers[letter]}
-           </label>`
+           </label>`,
         );
       }
 
@@ -75,7 +68,7 @@
         `<div class="slide">
            <div class="question"> ${currentQuestion.question} </div>
            <div class="answers"> ${answers.join("")} </div>
-         </div>`
+         </div>`,
       );
     });
 
@@ -163,13 +156,13 @@
   nextButton.addEventListener("click", showNextSlide);
   function eventFire(el, etype) {
     if (el.fireEvent) {
-      (el.fireEvent('on' + etype));
+      el.fireEvent("on" + etype);
     } else {
-      var evObj = document.createEvent('Events');
+      var evObj = document.createEvent("Events");
       evObj.initEvent(etype, true, false);
       el.dispatchEvent(evObj);
     }
   }
   //usage
-  eventFire(document.getElementById('f-btn'), 'click');
+  eventFire(document.getElementById("f-btn"), "click");
 })();

@@ -1,142 +1,120 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.help.Plugin","tinymce.core.PluginManager","tinymce.plugins.help.ui.Dialog","global!tinymce.util.Tools.resolve","tinymce.core.EditorManager","tinymce.plugins.help.ui.KeyboardShortcutsTab","tinymce.plugins.help.ui.PluginsTab","tinymce.plugins.help.ui.ButtonsRow","ephox.katamari.api.Arr","tinymce.plugins.help.data.KeyboardShortcuts","ephox.katamari.api.Obj","ephox.katamari.api.Fun","ephox.katamari.api.Strings","tinymce.plugins.help.data.PluginUrls","ephox.katamari.api.Option","global!Array","global!Error","global!String","tinymce.core.Env","global!Object","ephox.katamari.str.StrAppend","ephox.katamari.str.StringParts"]
 jsc*/
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.EditorManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.EditorManager');
-  }
-);
+  define("tinymce.core.EditorManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.EditorManager");
+  });
 
-defineGlobal("global!Array", Array);
-defineGlobal("global!Error", Error);
-define(
-  'ephox.katamari.api.Fun',
-
-  [
-    'global!Array',
-    'global!Error'
-  ],
-
-  function (Array, Error) {
-
-    var noop = function () { };
+  defineGlobal("global!Array", Array);
+  defineGlobal("global!Error", Error);
+  define("ephox.katamari.api.Fun", ["global!Array", "global!Error"], function (
+    Array,
+    Error,
+  ) {
+    var noop = function () {};
 
     var compose = function (fa, fb) {
       return function () {
@@ -154,7 +132,7 @@ define(
       return x;
     };
 
-    var tripleEquals = function(a, b) {
+    var tripleEquals = function (a, b) {
       return a === b;
     };
 
@@ -165,7 +143,7 @@ define(
       // Pay attention to what variable is where, and the -1 magic.
       // thankfully, we have tests for this.
       var args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++) args[i-1] = arguments[i];
+      for (var i = 1; i < arguments.length; i++) args[i - 1] = arguments[i];
 
       return function () {
         var newArgs = new Array(arguments.length);
@@ -192,13 +170,12 @@ define(
       return f();
     };
 
-    var call = function(f) {
+    var call = function (f) {
       f();
     };
 
     var never = constant(false);
     var always = constant(true);
-    
 
     return {
       noop: noop,
@@ -212,22 +189,15 @@ define(
       apply: apply,
       call: call,
       never: never,
-      always: always
+      always: always,
     };
-  }
-);
+  });
 
-defineGlobal("global!Object", Object);
-define(
-  'ephox.katamari.api.Option',
-
-  [
-    'ephox.katamari.api.Fun',
-    'global!Object'
-  ],
-
-  function (Fun, Object) {
-
+  defineGlobal("global!Object", Object);
+  define("ephox.katamari.api.Option", [
+    "ephox.katamari.api.Fun",
+    "global!Object",
+  ], function (Fun, Object) {
     var never = Fun.never;
     var always = Fun.always;
 
@@ -287,7 +257,9 @@ define(
 
     */
 
-    var none = function () { return NONE; };
+    var none = function () {
+      return NONE;
+    };
 
     var NONE = (function () {
       var eq = function (o) {
@@ -295,19 +267,25 @@ define(
       };
 
       // inlined from peanut, maybe a micro-optimisation?
-      var call = function (thunk) { return thunk(); };
-      var id = function (n) { return n; };
-      var noop = function () { };
+      var call = function (thunk) {
+        return thunk();
+      };
+      var id = function (n) {
+        return n;
+      };
+      var noop = function () {};
 
       var me = {
-        fold: function (n, s) { return n(); },
+        fold: function (n, s) {
+          return n();
+        },
         is: never,
         isSome: never,
         isNone: always,
         getOr: id,
         getOrThunk: call,
         getOrDie: function (msg) {
-          throw new Error(msg || 'error: getOrDie called on none.');
+          throw new Error(msg || "error: getOrDie called on none.");
         },
         or: id,
         orThunk: call,
@@ -321,19 +299,21 @@ define(
         filter: none,
         equals: eq,
         equals_: eq,
-        toArray: function () { return []; },
-        toString: Fun.constant("none()")
+        toArray: function () {
+          return [];
+        },
+        toString: Fun.constant("none()"),
       };
       if (Object.freeze) Object.freeze(me);
       return me;
     })();
 
-
     /** some :: a -> Option a */
     var some = function (a) {
-
       // inlined from peanut, maybe a micro-optimisation?
-      var constant_a = function () { return a; };
+      var constant_a = function () {
+        return a;
+      };
 
       var self = function () {
         // can't Fun.constant this one
@@ -349,8 +329,12 @@ define(
       };
 
       var me = {
-        fold: function (n, s) { return s(a); },
-        is: function (v) { return a === v; },
+        fold: function (n, s) {
+          return s(a);
+        },
+        is: function (v) {
+          return a === v;
+        },
         isSome: always,
         isNone: never,
         getOr: constant_a,
@@ -360,7 +344,7 @@ define(
         orThunk: self,
         map: map,
         ap: function (optfab) {
-          return optfab.fold(none, function(fab) {
+          return optfab.fold(none, function (fab) {
             return some(fab(a));
           });
         },
@@ -378,17 +362,16 @@ define(
           return o.is(a);
         },
         equals_: function (o, elementEq) {
-          return o.fold(
-            never,
-            function (b) { return elementEq(a, b); }
-          );
+          return o.fold(never, function (b) {
+            return elementEq(a, b);
+          });
         },
         toArray: function () {
           return [a];
         },
         toString: function () {
-          return 'some(' + a + ')';
-        }
+          return "some(" + a + ")";
+        },
       };
       return me;
     };
@@ -401,31 +384,29 @@ define(
     return {
       some: some,
       none: none,
-      from: from
+      from: from,
     };
-  }
-);
+  });
 
-defineGlobal("global!String", String);
-define(
-  'ephox.katamari.api.Arr',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Array',
-    'global!Error',
-    'global!String'
-  ],
-
-  function (Option, Array, Error, String) {
+  defineGlobal("global!String", String);
+  define("ephox.katamari.api.Arr", [
+    "ephox.katamari.api.Option",
+    "global!Array",
+    "global!Error",
+    "global!String",
+  ], function (Option, Array, Error, String) {
     // Use the native Array.indexOf if it is available (IE9+) otherwise fall back to manual iteration
     // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
     var rawIndexOf = (function () {
       var pIndexOf = Array.prototype.indexOf;
 
-      var fastIndex = function (xs, x) { return  pIndexOf.call(xs, x); };
+      var fastIndex = function (xs, x) {
+        return pIndexOf.call(xs, x);
+      };
 
-      var slowIndex = function(xs, x) { return slowIndexOf(xs, x); };
+      var slowIndex = function (xs, x) {
+        return slowIndexOf(xs, x);
+      };
 
       return pIndexOf === undefined ? slowIndex : fastIndex;
     })();
@@ -470,7 +451,7 @@ define(
       return r;
     };
 
-    var map = function(xs, f) {
+    var map = function (xs, f) {
       // pre-allocating array size when it's guaranteed to be known
       // http://jsperf.com/push-allocated-vs-dynamic/22
       var len = xs.length;
@@ -484,7 +465,7 @@ define(
 
     // Unwound implementing other functions in terms of each.
     // The code size is roughly the same, and it should allow for better optimisation.
-    var each = function(xs, f) {
+    var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         f(x, i, xs);
@@ -498,7 +479,7 @@ define(
       }
     };
 
-    var partition = function(xs, pred) {
+    var partition = function (xs, pred) {
       var pass = [];
       var fail = [];
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -509,7 +490,7 @@ define(
       return { pass: pass, fail: fail };
     };
 
-    var filter = function(xs, pred) {
+    var filter = function (xs, pred) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -610,7 +591,10 @@ define(
       var r = [];
       for (var i = 0, len = xs.length; i < len; ++i) {
         // Ensure that each value is an array itself
-        if (! Array.prototype.isPrototypeOf(xs[i])) throw new Error('Arr.flatten item ' + i + ' was not an array, input: ' + xs);
+        if (!Array.prototype.isPrototypeOf(xs[i]))
+          throw new Error(
+            "Arr.flatten item " + i + " was not an array, input: " + xs,
+          );
         push.apply(r, xs[i]);
       }
       return r;
@@ -632,9 +616,12 @@ define(
     };
 
     var equal = function (a1, a2) {
-      return a1.length === a2.length && forall(a1, function (x, i) {
-        return x === a2[i];
-      });
+      return (
+        a1.length === a2.length &&
+        forall(a1, function (x, i) {
+          return x === a2[i];
+        })
+      );
     };
 
     var slice = Array.prototype.slice;
@@ -650,7 +637,7 @@ define(
       });
     };
 
-    var mapToObject = function(xs, f) {
+    var mapToObject = function (xs, f) {
       var r = {};
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -659,7 +646,7 @@ define(
       return r;
     };
 
-    var pure = function(x) {
+    var pure = function (x) {
       return [x];
     };
 
@@ -693,125 +680,133 @@ define(
       mapToObject: mapToObject,
       pure: pure,
       sort: sort,
-      range: range
+      range: range,
     };
-  }
-);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.Env',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.Env');
-  }
-);
+  define("tinymce.core.Env", ["global!tinymce.util.Tools.resolve"], function (
+    resolve,
+  ) {
+    return resolve("tinymce.Env");
+  });
 
-define(
-  'tinymce.plugins.help.data.KeyboardShortcuts',
-  [
-    'tinymce.core.Env'
-  ],
-  function (Env) {
-    var meta = Env.mac ? '\u2318' : 'Ctrl';
-    var access = Env.mac ? 'Ctrl + Alt' : 'Shift + Alt';
+  define("tinymce.plugins.help.data.KeyboardShortcuts", [
+    "tinymce.core.Env",
+  ], function (Env) {
+    var meta = Env.mac ? "\u2318" : "Ctrl";
+    var access = Env.mac ? "Ctrl + Alt" : "Shift + Alt";
 
     var shortcuts = [
-      { shortcut: meta + ' + B', action: 'Bold' },
-      { shortcut: meta + ' + I', action: 'Italic' },
-      { shortcut: meta + ' + U', action: 'Underline' },
-      { shortcut: meta + ' + A', action: 'Select All' },
-      { shortcut: meta + ' + Y or ' + meta + ' + Shift + Z', action: 'Redo' },
-      { shortcut: meta + ' + Z', action: 'Undo' },
-      { shortcut: access + ' + 1', action: 'Header 1' },
-      { shortcut: access + ' + 2', action: 'Header 2' },
-      { shortcut: access + ' + 3', action: 'Header 3' },
-      { shortcut: access + ' + 4', action: 'Header 4' },
-      { shortcut: access + ' + 5', action: 'Header 5' },
-      { shortcut: access + ' + 6', action: 'Header 6' },
-      { shortcut: access + ' + 7', action: 'Paragraph' },
-      { shortcut: access + ' + 8', action: 'Div' },
-      { shortcut: access + ' + 9', action: 'Address' },
-      { shortcut: 'Alt + F9', action: 'Focus to menubar' },
-      { shortcut: 'Alt + F10', action: 'Focus to toolbar' },
-      { shortcut: 'Alt + F11', action: 'Focus to element path' },
+      { shortcut: meta + " + B", action: "Bold" },
+      { shortcut: meta + " + I", action: "Italic" },
+      { shortcut: meta + " + U", action: "Underline" },
+      { shortcut: meta + " + A", action: "Select All" },
+      { shortcut: meta + " + Y or " + meta + " + Shift + Z", action: "Redo" },
+      { shortcut: meta + " + Z", action: "Undo" },
+      { shortcut: access + " + 1", action: "Header 1" },
+      { shortcut: access + " + 2", action: "Header 2" },
+      { shortcut: access + " + 3", action: "Header 3" },
+      { shortcut: access + " + 4", action: "Header 4" },
+      { shortcut: access + " + 5", action: "Header 5" },
+      { shortcut: access + " + 6", action: "Header 6" },
+      { shortcut: access + " + 7", action: "Paragraph" },
+      { shortcut: access + " + 8", action: "Div" },
+      { shortcut: access + " + 9", action: "Address" },
+      { shortcut: "Alt + F9", action: "Focus to menubar" },
+      { shortcut: "Alt + F10", action: "Focus to toolbar" },
+      { shortcut: "Alt + F11", action: "Focus to element path" },
       {
-        shortcut: 'Ctrl + Shift + P > Ctrl + Shift + P',
-        action: 'Focus to contextual toolbar'
+        shortcut: "Ctrl + Shift + P > Ctrl + Shift + P",
+        action: "Focus to contextual toolbar",
       },
-      { shortcut: meta + ' + K', action: 'Insert link (if link plugin activated)' },
-      { shortcut: meta + ' + S', action: 'Save (if save plugin activated)' },
-      { shortcut: meta + ' + F', action: 'Find (if searchreplace plugin activated)' }
+      {
+        shortcut: meta + " + K",
+        action: "Insert link (if link plugin activated)",
+      },
+      { shortcut: meta + " + S", action: "Save (if save plugin activated)" },
+      {
+        shortcut: meta + " + F",
+        action: "Find (if searchreplace plugin activated)",
+      },
     ];
 
     return {
-      shortcuts: shortcuts
+      shortcuts: shortcuts,
     };
   });
 
-define(
-  'tinymce.plugins.help.ui.KeyboardShortcutsTab',
-  [
-    'ephox.katamari.api.Arr',
-    'tinymce.plugins.help.data.KeyboardShortcuts'
-  ],
-  function (Arr, KeyboardShortcuts) {
+  define("tinymce.plugins.help.ui.KeyboardShortcutsTab", [
+    "ephox.katamari.api.Arr",
+    "tinymce.plugins.help.data.KeyboardShortcuts",
+  ], function (Arr, KeyboardShortcuts) {
     var makeTab = function () {
       var makeAriaLabel = function (shortcut) {
-        return 'aria-label="Action: ' + shortcut.action + ', Shortcut: ' + shortcut.shortcut.replace(/Ctrl/g, 'Control') + '"';
+        return (
+          'aria-label="Action: ' +
+          shortcut.action +
+          ", Shortcut: " +
+          shortcut.shortcut.replace(/Ctrl/g, "Control") +
+          '"'
+        );
       };
-      var shortcutLisString = Arr.map(KeyboardShortcuts.shortcuts, function (shortcut) {
-        return '<tr data-mce-tabstop="1" tabindex="-1" ' + makeAriaLabel(shortcut) + '>' +
-                  '<td>' + shortcut.action + '</td>' +
-                  '<td>' + shortcut.shortcut + '</td>' +
-                '</tr>';
-      }).join('');
+      var shortcutLisString = Arr.map(
+        KeyboardShortcuts.shortcuts,
+        function (shortcut) {
+          return (
+            '<tr data-mce-tabstop="1" tabindex="-1" ' +
+            makeAriaLabel(shortcut) +
+            ">" +
+            "<td>" +
+            shortcut.action +
+            "</td>" +
+            "<td>" +
+            shortcut.shortcut +
+            "</td>" +
+            "</tr>"
+          );
+        },
+      ).join("");
 
       return {
-        title: 'Handy Shortcuts',
-        type: 'container',
-        style: 'overflow-y: auto; overflow-x: hidden; max-height: 250px',
+        title: "Handy Shortcuts",
+        type: "container",
+        style: "overflow-y: auto; overflow-x: hidden; max-height: 250px",
         items: [
           {
-            type: 'container',
-            html: '<div>' +
-                    '<table class="mce-table-striped">' +
-                      '<thead>' +
-                        '<th>Action</th>' +
-                        '<th>Shortcut</th>' +
-                      '</thead>' +
-                      shortcutLisString +
-                    '</table>' +
-                  '</div>'
-          }
-        ]
+            type: "container",
+            html:
+              "<div>" +
+              '<table class="mce-table-striped">' +
+              "<thead>" +
+              "<th>Action</th>" +
+              "<th>Shortcut</th>" +
+              "</thead>" +
+              shortcutLisString +
+              "</table>" +
+              "</div>",
+          },
+        ],
       };
     };
 
     return {
-      makeTab: makeTab
+      makeTab: makeTab,
     };
   });
 
-define(
-  'ephox.katamari.api.Obj',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Object'
-  ],
-
-  function (Option, Object) {
+  define("ephox.katamari.api.Obj", [
+    "ephox.katamari.api.Option",
+    "global!Object",
+  ], function (Option, Object) {
     // There are many variations of Object iteration that are faster than the 'for-in' style:
     // http://jsperf.com/object-keys-iteration/107
     //
@@ -835,7 +830,6 @@ define(
       return fastKeys === undefined ? slowKeys : fastKeys;
     })();
 
-
     var each = function (obj, f) {
       var props = keys(obj);
       for (var k = 0, len = props.length; k < len; k++) {
@@ -850,7 +844,7 @@ define(
       return tupleMap(obj, function (x, i, obj) {
         return {
           k: i,
-          v: f(x, i, obj)
+          v: f(x, i, obj),
         };
       });
     };
@@ -869,20 +863,20 @@ define(
     var bifilter = function (obj, pred) {
       var t = {};
       var f = {};
-      each(obj, function(x, i) {
+      each(obj, function (x, i) {
         var branch = pred(x, i) ? t : f;
         branch[i] = x;
       });
       return {
         t: t,
-        f: f
+        f: f,
       };
     };
 
     /** mapToArray :: (JsObj(k, v), (v, k -> a)) -> [a] */
     var mapToArray = function (obj, f) {
       var r = [];
-      each(obj, function(value, name) {
+      each(obj, function (value, name) {
         r.push(f(value, name));
       });
       return r;
@@ -921,18 +915,10 @@ define(
       find: find,
       keys: keys,
       values: values,
-      size: size
+      size: size,
     };
-  }
-);
-define(
-  'ephox.katamari.str.StrAppend',
-
-  [
-
-  ],
-
-  function () {
+  });
+  define("ephox.katamari.str.StrAppend", [], function () {
     var addToStart = function (str, prefix) {
       return prefix + str;
     };
@@ -948,66 +934,54 @@ define(
     var removeFromEnd = function (str, numChars) {
       return str.substring(0, str.length - numChars);
     };
- 
+
     return {
       addToStart: addToStart,
       addToEnd: addToEnd,
       removeFromStart: removeFromStart,
-      removeFromEnd: removeFromEnd
+      removeFromEnd: removeFromEnd,
     };
-  }
-);
-define(
-  'ephox.katamari.str.StringParts',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Error'
-  ],
-
-  function (Option, Error) {
+  });
+  define("ephox.katamari.str.StringParts", [
+    "ephox.katamari.api.Option",
+    "global!Error",
+  ], function (Option, Error) {
     /** Return the first 'count' letters from 'str'.
 -     *  e.g. first("abcde", 2) === "ab"
 -     */
-    var first = function(str, count) {
-     return str.substr(0, count);
+    var first = function (str, count) {
+      return str.substr(0, count);
     };
 
     /** Return the last 'count' letters from 'str'.
-    *  e.g. last("abcde", 2) === "de"
-    */
-    var last = function(str, count) {
-     return str.substr(str.length - count, str.length);
+     *  e.g. last("abcde", 2) === "de"
+     */
+    var last = function (str, count) {
+      return str.substr(str.length - count, str.length);
     };
 
-    var head = function(str) {
-      return str === '' ? Option.none() : Option.some(str.substr(0, 1));
+    var head = function (str) {
+      return str === "" ? Option.none() : Option.some(str.substr(0, 1));
     };
 
-    var tail = function(str) {
-      return str === '' ? Option.none() : Option.some(str.substring(1));
+    var tail = function (str) {
+      return str === "" ? Option.none() : Option.some(str.substring(1));
     };
 
     return {
       first: first,
       last: last,
       head: head,
-      tail: tail
+      tail: tail,
     };
-  }
-);
-define(
-  'ephox.katamari.api.Strings',
-
-  [
-    'ephox.katamari.str.StrAppend',
-    'ephox.katamari.str.StringParts',
-    'global!Error'
-  ],
-
-  function (StrAppend, StringParts, Error) {
-    var checkRange = function(str, substr, start) {
-      if (substr === '') return true;
+  });
+  define("ephox.katamari.api.Strings", [
+    "ephox.katamari.str.StrAppend",
+    "ephox.katamari.str.StringParts",
+    "global!Error",
+  ], function (StrAppend, StringParts, Error) {
+    var checkRange = function (str, substr, start) {
+      if (substr === "") return true;
       if (str.length < substr.length) return false;
       var x = str.substr(start, start + substr.length);
       return x === substr;
@@ -1017,26 +991,28 @@ define(
      * Any template fields of the form ${name} are replaced by the string or number specified as obj["name"]
      * Based on Douglas Crockford's 'supplant' method for template-replace of strings. Uses different template format.
      */
-    var supplant = function(str, obj) {
-      var isStringOrNumber = function(a) {
+    var supplant = function (str, obj) {
+      var isStringOrNumber = function (a) {
         var t = typeof a;
-        return t === 'string' || t === 'number';
+        return t === "string" || t === "number";
       };
 
-      return str.replace(/\${([^{}]*)}/g,
-        function (a, b) {
-          var value = obj[b];
-          return isStringOrNumber(value) ? value : a;
-        }
-      );
+      return str.replace(/\${([^{}]*)}/g, function (a, b) {
+        var value = obj[b];
+        return isStringOrNumber(value) ? value : a;
+      });
     };
 
     var removeLeading = function (str, prefix) {
-      return startsWith(str, prefix) ? StrAppend.removeFromStart(str, prefix.length) : str;
+      return startsWith(str, prefix)
+        ? StrAppend.removeFromStart(str, prefix.length)
+        : str;
     };
 
     var removeTrailing = function (str, prefix) {
-      return endsWith(str, prefix) ? StrAppend.removeFromEnd(str, prefix.length) : str;
+      return endsWith(str, prefix)
+        ? StrAppend.removeFromEnd(str, prefix.length)
+        : str;
     };
 
     var ensureLeading = function (str, prefix) {
@@ -1046,17 +1022,19 @@ define(
     var ensureTrailing = function (str, prefix) {
       return endsWith(str, prefix) ? str : StrAppend.addToEnd(str, prefix);
     };
- 
-    var contains = function(str, substr) {
+
+    var contains = function (str, substr) {
       return str.indexOf(substr) !== -1;
     };
 
-    var capitalize = function(str) {
-      return StringParts.head(str).bind(function (head) {
-        return StringParts.tail(str).map(function (tail) {
-          return head.toUpperCase() + tail;
-        });
-      }).getOr(str);
+    var capitalize = function (str) {
+      return StringParts.head(str)
+        .bind(function (head) {
+          return StringParts.tail(str).map(function (tail) {
+            return head.toUpperCase() + tail;
+          });
+        })
+        .getOr(str);
     };
 
     /** Does 'str' start with 'prefix'?
@@ -1064,7 +1042,7 @@ define(
      *        More formally, for all strings x, startsWith(x, "").
      *        This is so that for all strings x and y, startsWith(y + x, y)
      */
-    var startsWith = function(str, prefix) {
+    var startsWith = function (str, prefix) {
       return checkRange(str, prefix, 0);
     };
 
@@ -1073,22 +1051,21 @@ define(
      *        More formally, for all strings x, endsWith(x, "").
      *        This is so that for all strings x and y, endsWith(x + y, y)
      */
-    var endsWith = function(str, suffix) {
+    var endsWith = function (str, suffix) {
       return checkRange(str, suffix, str.length - suffix.length);
     };
 
-   
     /** removes all leading and trailing spaces */
-    var trim = function(str) {
-      return str.replace(/^\s+|\s+$/g, '');
+    var trim = function (str) {
+      return str.replace(/^\s+|\s+$/g, "");
     };
 
-    var lTrim = function(str) {
-      return str.replace(/^\s+/g, '');
+    var lTrim = function (str) {
+      return str.replace(/^\s+/g, "");
     };
 
-    var rTrim = function(str) {
-      return str.replace(/\s+$/g, '');
+    var rTrim = function (str) {
+      return str.replace(/\s+$/g, "");
     };
 
     return {
@@ -1103,250 +1080,252 @@ define(
       trim: trim,
       lTrim: lTrim,
       rTrim: rTrim,
-      capitalize: capitalize
-    };
-  }
-);
-
-define(
-  'tinymce.plugins.help.data.PluginUrls',
-  [
-  ],
-  function () {
-    var urls = [
-      'advlist',
-      'anchor',
-      'autolink',
-      'autoresize',
-      'autosave',
-      'bbcode',
-      'charmap',
-      'code',
-      'codesample',
-      'colorpicker',
-      'compat3x',
-      'contextmenu',
-      'directionality',
-      'emoticons',
-      'fullpage',
-      'fullscreen',
-      'hr',
-      'image',
-      'imagetools',
-      'importcss',
-      'insertdatetime',
-      'legacyoutput',
-      'link',
-      'lists',
-      'media',
-      'nonbreaking',
-      'noneditable',
-      'pagebreak',
-      'paste',
-      'preview',
-      'print',
-      'save',
-      'searchreplace',
-      'spellchecker',
-      'tabfocus',
-      'table',
-      'template',
-      'textcolor',
-      'textpattern',
-      'toc',
-      'visualblocks',
-      'visualchars',
-      'wordcount'
-    ];
-
-    return {
-      urls: urls
+      capitalize: capitalize,
     };
   });
 
-define(
-'tinymce.plugins.help.ui.PluginsTab',
-  [
-    'tinymce.core.EditorManager',
-    'ephox.katamari.api.Obj',
-    'ephox.katamari.api.Arr',
-    'ephox.katamari.api.Fun',
-    'ephox.katamari.api.Strings',
-    'tinymce.plugins.help.data.PluginUrls'
-  ],
-function (tinymce, Obj, Arr, Fun, Strings, PluginUrls) {
-  var maybeUrlize = function (name) {
-    return Arr.find(PluginUrls.urls, function (x) {
-      return x === name;
-    }).fold(Fun.constant(name), function (pluginName) {
-      return Strings.supplant('<a href="${url}" target="_blank">${name}</a>', {
-        name: pluginName,
-        url: 'https://www.tinymce.com/docs/plugins/' + pluginName
+  define("tinymce.plugins.help.data.PluginUrls", [], function () {
+    var urls = [
+      "advlist",
+      "anchor",
+      "autolink",
+      "autoresize",
+      "autosave",
+      "bbcode",
+      "charmap",
+      "code",
+      "codesample",
+      "colorpicker",
+      "compat3x",
+      "contextmenu",
+      "directionality",
+      "emoticons",
+      "fullpage",
+      "fullscreen",
+      "hr",
+      "image",
+      "imagetools",
+      "importcss",
+      "insertdatetime",
+      "legacyoutput",
+      "link",
+      "lists",
+      "media",
+      "nonbreaking",
+      "noneditable",
+      "pagebreak",
+      "paste",
+      "preview",
+      "print",
+      "save",
+      "searchreplace",
+      "spellchecker",
+      "tabfocus",
+      "table",
+      "template",
+      "textcolor",
+      "textpattern",
+      "toc",
+      "visualblocks",
+      "visualchars",
+      "wordcount",
+    ];
+
+    return {
+      urls: urls,
+    };
+  });
+
+  define("tinymce.plugins.help.ui.PluginsTab", [
+    "tinymce.core.EditorManager",
+    "ephox.katamari.api.Obj",
+    "ephox.katamari.api.Arr",
+    "ephox.katamari.api.Fun",
+    "ephox.katamari.api.Strings",
+    "tinymce.plugins.help.data.PluginUrls",
+  ], function (tinymce, Obj, Arr, Fun, Strings, PluginUrls) {
+    var maybeUrlize = function (name) {
+      return Arr.find(PluginUrls.urls, function (x) {
+        return x === name;
+      }).fold(Fun.constant(name), function (pluginName) {
+        return Strings.supplant(
+          '<a href="${url}" target="_blank">${name}</a>',
+          {
+            name: pluginName,
+            url: "https://www.tinymce.com/docs/plugins/" + pluginName,
+          },
+        );
       });
-    });
-  };
-
-  var pluginLister = function (editor) {
-    var plugins = Obj.mapToArray(editor.plugins, function (plugin, key) {
-      return '<li>' + maybeUrlize(key) + '</li>';
-    });
-    var count = plugins.length;
-    var pluginsString = plugins.join('');
-
-    return '<p><b>Plugins installed (' + count + '):</b></p>' +
-            '<ul>' + pluginsString + '</ul>';
-  };
-
-  var installedPlugins = function (editor) {
-    return {
-      type: 'container',
-      html: '<div style="overflow-y: auto; overflow-x: hidden; max-height: 230px; height: 230px;" data-mce-tabstop="1" tabindex="-1">' +
-              pluginLister(editor) +
-            '</div>',
-      flex: 1
     };
-  };
 
-  var availablePlugins = function () {
-    return {
-      type: 'container',
-      html: '<div style="padding: 10px; background: #e3e7f4; height: 100%;" data-mce-tabstop="1" tabindex="-1">' +
-              '<p><b>Premium plugins:</b></p>' +
-              '<ul>' +
-                '<li>PowerPaste</li>' +
-                '<li>Spell Checker Pro</li>' +
-                '<li>Accessibility Checker</li>' +
-                '<li>Advanced Code Editor</li>' +
-                '<li>Enhanced Media Embed</li>' +
-                '<li>Link Checker</li>' +
-              '</ul><br />' +
-              '<p style="float: right;"><a href="https://www.tinymce.com/pricing/" target="_blank">Learn more...</a></p>' +
-            '</div>',
-      flex: 1
+    var pluginLister = function (editor) {
+      var plugins = Obj.mapToArray(editor.plugins, function (plugin, key) {
+        return "<li>" + maybeUrlize(key) + "</li>";
+      });
+      var count = plugins.length;
+      var pluginsString = plugins.join("");
+
+      return (
+        "<p><b>Plugins installed (" +
+        count +
+        "):</b></p>" +
+        "<ul>" +
+        pluginsString +
+        "</ul>"
+      );
     };
-  };
 
-  var makeTab = function (editor) {
-    return {
-      title: 'Plugins',
-      type: 'container',
-      style: 'overflow-y: auto; overflow-x: hidden;',
-      layout: 'flex',
-      padding: 10,
-      spacing: 10,
-      items: [
-        installedPlugins(editor),
-        availablePlugins()
-      ]
+    var installedPlugins = function (editor) {
+      return {
+        type: "container",
+        html:
+          '<div style="overflow-y: auto; overflow-x: hidden; max-height: 230px; height: 230px;" data-mce-tabstop="1" tabindex="-1">' +
+          pluginLister(editor) +
+          "</div>",
+        flex: 1,
+      };
     };
-  };
 
-  return {
-    makeTab: makeTab
-  };
-});
+    var availablePlugins = function () {
+      return {
+        type: "container",
+        html:
+          '<div style="padding: 10px; background: #e3e7f4; height: 100%;" data-mce-tabstop="1" tabindex="-1">' +
+          "<p><b>Premium plugins:</b></p>" +
+          "<ul>" +
+          "<li>PowerPaste</li>" +
+          "<li>Spell Checker Pro</li>" +
+          "<li>Accessibility Checker</li>" +
+          "<li>Advanced Code Editor</li>" +
+          "<li>Enhanced Media Embed</li>" +
+          "<li>Link Checker</li>" +
+          "</ul><br />" +
+          '<p style="float: right;"><a href="https://www.tinymce.com/pricing/" target="_blank">Learn more...</a></p>' +
+          "</div>",
+        flex: 1,
+      };
+    };
 
-define(
-  'tinymce.plugins.help.ui.ButtonsRow',
-  [
-    'tinymce.core.EditorManager'
-  ],
-  function (EditorManager) {
+    var makeTab = function (editor) {
+      return {
+        title: "Plugins",
+        type: "container",
+        style: "overflow-y: auto; overflow-x: hidden;",
+        layout: "flex",
+        padding: 10,
+        spacing: 10,
+        items: [installedPlugins(editor), availablePlugins()],
+      };
+    };
+
+    return {
+      makeTab: makeTab,
+    };
+  });
+
+  define("tinymce.plugins.help.ui.ButtonsRow", [
+    "tinymce.core.EditorManager",
+  ], function (EditorManager) {
     var getVersion = function (major, minor) {
-      return major.indexOf('@') === 0 ? 'X.X.X' : major + '.' + minor;
+      return major.indexOf("@") === 0 ? "X.X.X" : major + "." + minor;
     };
 
     var makeRow = function () {
-      var version = getVersion(EditorManager.majorVersion, EditorManager.minorVersion);
-      var changeLogLink = '<a href="https://www.tinymce.com/docs/changelog/" target="_blank">TinyMCE ' + version + '</a>';
+      var version = getVersion(
+        EditorManager.majorVersion,
+        EditorManager.minorVersion,
+      );
+      var changeLogLink =
+        '<a href="https://www.tinymce.com/docs/changelog/" target="_blank">TinyMCE ' +
+        version +
+        "</a>";
 
       return [
         {
-          type: 'label',
-          html: 'You are using ' + changeLogLink
+          type: "label",
+          html: "You are using " + changeLogLink,
         },
         {
-          type: 'spacer',
-          flex: 1
+          type: "spacer",
+          flex: 1,
         },
         {
-          text: 'Close',
+          text: "Close",
           onclick: function () {
             this.parent().parent().close();
-          }
-        }
+          },
+        },
       ];
     };
 
     return {
-      makeRow: makeRow
+      makeRow: makeRow,
     };
-  }
-);
+  });
 
-define(
-  'tinymce.plugins.help.ui.Dialog',
-  [
-    'tinymce.core.EditorManager',
-    'tinymce.plugins.help.ui.KeyboardShortcutsTab',
-    'tinymce.plugins.help.ui.PluginsTab',
-    'tinymce.plugins.help.ui.ButtonsRow'
-  ],
-  function (EditorManager, KeyboardShortcutsTab, PluginsTab, ButtonsRow) {
+  define("tinymce.plugins.help.ui.Dialog", [
+    "tinymce.core.EditorManager",
+    "tinymce.plugins.help.ui.KeyboardShortcutsTab",
+    "tinymce.plugins.help.ui.PluginsTab",
+    "tinymce.plugins.help.ui.ButtonsRow",
+  ], function (EditorManager, KeyboardShortcutsTab, PluginsTab, ButtonsRow) {
     var openDialog = function (editor, url) {
       return function () {
         editor.windowManager.open({
-          title: 'Help',
-          bodyType: 'tabpanel',
-          layout: 'flex',
+          title: "Help",
+          bodyType: "tabpanel",
+          layout: "flex",
           body: [
             KeyboardShortcutsTab.makeTab(),
-            PluginsTab.makeTab(editor, url)
+            PluginsTab.makeTab(editor, url),
           ],
           buttons: ButtonsRow.makeRow(),
           onPostRender: function () {
-            var title = this.getEl('title');
-            title.innerHTML = '<img src="' + url + '/img/logo.png" alt="TinyMCE Logo" style="width: 200px">';
-          }
+            var title = this.getEl("title");
+            title.innerHTML =
+              '<img src="' +
+              url +
+              '/img/logo.png" alt="TinyMCE Logo" style="width: 200px">';
+          },
         });
       };
     };
 
     return {
-      openDialog: openDialog
+      openDialog: openDialog,
     };
   });
 
-define(
-  'tinymce.plugins.help.Plugin',
-  [
-    'tinymce.core.PluginManager',
-    'tinymce.plugins.help.ui.Dialog'
-  ],
-  function (PluginManager, Dialog) {
+  define("tinymce.plugins.help.Plugin", [
+    "tinymce.core.PluginManager",
+    "tinymce.plugins.help.ui.Dialog",
+  ], function (PluginManager, Dialog) {
     var Plugin = function (editor, url) {
-      editor.addButton('help', {
-        icon: 'help',
-        onclick: Dialog.openDialog(editor, url)
+      editor.addButton("help", {
+        icon: "help",
+        onclick: Dialog.openDialog(editor, url),
       });
 
-      editor.addMenuItem('Help', {
-        text: 'Help',
-        icon: 'help',
-        context: 'view',
-        onclick: Dialog.openDialog(editor, url)
+      editor.addMenuItem("Help", {
+        text: "Help",
+        icon: "help",
+        context: "view",
+        onclick: Dialog.openDialog(editor, url),
       });
 
-      editor.addCommand('mceHelp', Dialog.openDialog(editor, url));
+      editor.addCommand("mceHelp", Dialog.openDialog(editor, url));
 
-      editor.shortcuts.add('Alt+0', 'Open help dialog', Dialog.openDialog(editor, url));
+      editor.shortcuts.add(
+        "Alt+0",
+        "Open help dialog",
+        Dialog.openDialog(editor, url),
+      );
     };
 
-    PluginManager.add('help', Plugin);
+    PluginManager.add("help", Plugin);
 
     return function () {};
-  }
-);
+  });
 
-dem('tinymce.plugins.help.Plugin')();
+  dem("tinymce.plugins.help.Plugin")();
 })();

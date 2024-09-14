@@ -1,142 +1,120 @@
 (function () {
+  var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
 
-var defs = {}; // id -> {dependencies, definition, instance (possibly undefined)}
-
-// Used when there is no 'main' module.
-// The name is probably (hopefully) unique so minification removes for releases.
-var register_3795 = function (id) {
-  var module = dem(id);
-  var fragments = id.split('.');
-  var target = Function('return this;')();
-  for (var i = 0; i < fragments.length - 1; ++i) {
-    if (target[fragments[i]] === undefined)
-      target[fragments[i]] = {};
-    target = target[fragments[i]];
-  }
-  target[fragments[fragments.length - 1]] = module;
-};
-
-var instantiate = function (id) {
-  var actual = defs[id];
-  var dependencies = actual.deps;
-  var definition = actual.defn;
-  var len = dependencies.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances[i] = dem(dependencies[i]);
-  var defResult = definition.apply(null, instances);
-  if (defResult === undefined)
-     throw 'module [' + id + '] returned undefined';
-  actual.instance = defResult;
-};
-
-var def = function (id, dependencies, definition) {
-  if (typeof id !== 'string')
-    throw 'module id must be a string';
-  else if (dependencies === undefined)
-    throw 'no dependencies for ' + id;
-  else if (definition === undefined)
-    throw 'no definition function for ' + id;
-  defs[id] = {
-    deps: dependencies,
-    defn: definition,
-    instance: undefined
-  };
-};
-
-var dem = function (id) {
-  var actual = defs[id];
-  if (actual === undefined)
-    throw 'module [' + id + '] was undefined';
-  else if (actual.instance === undefined)
-    instantiate(id);
-  return actual.instance;
-};
-
-var req = function (ids, callback) {
-  var len = ids.length;
-  var instances = new Array(len);
-  for (var i = 0; i < len; ++i)
-    instances.push(dem(ids[i]));
-  callback.apply(null, callback);
-};
-
-var ephox = {};
-
-ephox.bolt = {
-  module: {
-    api: {
-      define: def,
-      require: req,
-      demand: dem
+  // Used when there is no 'main' module.
+  // The name is probably (hopefully) unique so minification removes for releases.
+  var register_3795 = function (id) {
+    var module = dem(id);
+    var fragments = id.split(".");
+    var target = Function("return this;")();
+    for (var i = 0; i < fragments.length - 1; ++i) {
+      if (target[fragments[i]] === undefined) target[fragments[i]] = {};
+      target = target[fragments[i]];
     }
-  }
-};
+    target[fragments[fragments.length - 1]] = module;
+  };
 
-var define = def;
-var require = req;
-var demand = dem;
-// this helps with minificiation when using a lot of global references
-var defineGlobal = function (id, ref) {
-  define(id, [], function () { return ref; });
-};
-/*jsc
+  var instantiate = function (id) {
+    var actual = defs[id];
+    var dependencies = actual.deps;
+    var definition = actual.defn;
+    var len = dependencies.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances[i] = dem(dependencies[i]);
+    var defResult = definition.apply(null, instances);
+    if (defResult === undefined) throw "module [" + id + "] returned undefined";
+    actual.instance = defResult;
+  };
+
+  var def = function (id, dependencies, definition) {
+    if (typeof id !== "string") throw "module id must be a string";
+    else if (dependencies === undefined) throw "no dependencies for " + id;
+    else if (definition === undefined) throw "no definition function for " + id;
+    defs[id] = {
+      deps: dependencies,
+      defn: definition,
+      instance: undefined,
+    };
+  };
+
+  var dem = function (id) {
+    var actual = defs[id];
+    if (actual === undefined) throw "module [" + id + "] was undefined";
+    else if (actual.instance === undefined) instantiate(id);
+    return actual.instance;
+  };
+
+  var req = function (ids, callback) {
+    var len = ids.length;
+    var instances = new Array(len);
+    for (var i = 0; i < len; ++i) instances.push(dem(ids[i]));
+    callback.apply(null, callback);
+  };
+
+  var ephox = {};
+
+  ephox.bolt = {
+    module: {
+      api: {
+        define: def,
+        require: req,
+        demand: dem,
+      },
+    },
+  };
+
+  var define = def;
+  var require = req;
+  var demand = dem;
+  // this helps with minificiation when using a lot of global references
+  var defineGlobal = function (id, ref) {
+    define(id, [], function () {
+      return ref;
+    });
+  };
+  /*jsc
 ["tinymce.plugins.visualchars.Plugin","tinymce.core.PluginManager","tinymce.core.util.Delay","ephox.katamari.api.Arr","ephox.sugar.api.node.Element","tinymce.plugins.visualchars.core.VisualChars","global!tinymce.util.Tools.resolve","ephox.katamari.api.Option","global!Array","global!Error","global!String","ephox.katamari.api.Fun","global!console","global!document","tinymce.plugins.visualchars.core.Data","tinymce.plugins.visualchars.core.Nodes","ephox.sugar.api.node.Node","global!Object","ephox.sugar.api.node.NodeTypes","tinymce.plugins.visualchars.core.Html"]
 jsc*/
-defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  defineGlobal("global!tinymce.util.Tools.resolve", tinymce.util.Tools.resolve);
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.PluginManager',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.PluginManager');
-  }
-);
+  define("tinymce.core.PluginManager", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.PluginManager");
+  });
 
-/**
- * ResolveGlobal.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * ResolveGlobal.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.core.util.Delay',
-  [
-    'global!tinymce.util.Tools.resolve'
-  ],
-  function (resolve) {
-    return resolve('tinymce.util.Delay');
-  }
-);
+  define("tinymce.core.util.Delay", [
+    "global!tinymce.util.Tools.resolve",
+  ], function (resolve) {
+    return resolve("tinymce.util.Delay");
+  });
 
-defineGlobal("global!Array", Array);
-defineGlobal("global!Error", Error);
-define(
-  'ephox.katamari.api.Fun',
-
-  [
-    'global!Array',
-    'global!Error'
-  ],
-
-  function (Array, Error) {
-
-    var noop = function () { };
+  defineGlobal("global!Array", Array);
+  defineGlobal("global!Error", Error);
+  define("ephox.katamari.api.Fun", ["global!Array", "global!Error"], function (
+    Array,
+    Error,
+  ) {
+    var noop = function () {};
 
     var compose = function (fa, fb) {
       return function () {
@@ -154,7 +132,7 @@ define(
       return x;
     };
 
-    var tripleEquals = function(a, b) {
+    var tripleEquals = function (a, b) {
       return a === b;
     };
 
@@ -165,7 +143,7 @@ define(
       // Pay attention to what variable is where, and the -1 magic.
       // thankfully, we have tests for this.
       var args = new Array(arguments.length - 1);
-      for (var i = 1; i < arguments.length; i++) args[i-1] = arguments[i];
+      for (var i = 1; i < arguments.length; i++) args[i - 1] = arguments[i];
 
       return function () {
         var newArgs = new Array(arguments.length);
@@ -192,13 +170,12 @@ define(
       return f();
     };
 
-    var call = function(f) {
+    var call = function (f) {
       f();
     };
 
     var never = constant(false);
     var always = constant(true);
-    
 
     return {
       noop: noop,
@@ -212,22 +189,15 @@ define(
       apply: apply,
       call: call,
       never: never,
-      always: always
+      always: always,
     };
-  }
-);
+  });
 
-defineGlobal("global!Object", Object);
-define(
-  'ephox.katamari.api.Option',
-
-  [
-    'ephox.katamari.api.Fun',
-    'global!Object'
-  ],
-
-  function (Fun, Object) {
-
+  defineGlobal("global!Object", Object);
+  define("ephox.katamari.api.Option", [
+    "ephox.katamari.api.Fun",
+    "global!Object",
+  ], function (Fun, Object) {
     var never = Fun.never;
     var always = Fun.always;
 
@@ -287,7 +257,9 @@ define(
 
     */
 
-    var none = function () { return NONE; };
+    var none = function () {
+      return NONE;
+    };
 
     var NONE = (function () {
       var eq = function (o) {
@@ -295,19 +267,25 @@ define(
       };
 
       // inlined from peanut, maybe a micro-optimisation?
-      var call = function (thunk) { return thunk(); };
-      var id = function (n) { return n; };
-      var noop = function () { };
+      var call = function (thunk) {
+        return thunk();
+      };
+      var id = function (n) {
+        return n;
+      };
+      var noop = function () {};
 
       var me = {
-        fold: function (n, s) { return n(); },
+        fold: function (n, s) {
+          return n();
+        },
         is: never,
         isSome: never,
         isNone: always,
         getOr: id,
         getOrThunk: call,
         getOrDie: function (msg) {
-          throw new Error(msg || 'error: getOrDie called on none.');
+          throw new Error(msg || "error: getOrDie called on none.");
         },
         or: id,
         orThunk: call,
@@ -321,19 +299,21 @@ define(
         filter: none,
         equals: eq,
         equals_: eq,
-        toArray: function () { return []; },
-        toString: Fun.constant("none()")
+        toArray: function () {
+          return [];
+        },
+        toString: Fun.constant("none()"),
       };
       if (Object.freeze) Object.freeze(me);
       return me;
     })();
 
-
     /** some :: a -> Option a */
     var some = function (a) {
-
       // inlined from peanut, maybe a micro-optimisation?
-      var constant_a = function () { return a; };
+      var constant_a = function () {
+        return a;
+      };
 
       var self = function () {
         // can't Fun.constant this one
@@ -349,8 +329,12 @@ define(
       };
 
       var me = {
-        fold: function (n, s) { return s(a); },
-        is: function (v) { return a === v; },
+        fold: function (n, s) {
+          return s(a);
+        },
+        is: function (v) {
+          return a === v;
+        },
         isSome: always,
         isNone: never,
         getOr: constant_a,
@@ -360,7 +344,7 @@ define(
         orThunk: self,
         map: map,
         ap: function (optfab) {
-          return optfab.fold(none, function(fab) {
+          return optfab.fold(none, function (fab) {
             return some(fab(a));
           });
         },
@@ -378,17 +362,16 @@ define(
           return o.is(a);
         },
         equals_: function (o, elementEq) {
-          return o.fold(
-            never,
-            function (b) { return elementEq(a, b); }
-          );
+          return o.fold(never, function (b) {
+            return elementEq(a, b);
+          });
         },
         toArray: function () {
           return [a];
         },
         toString: function () {
-          return 'some(' + a + ')';
-        }
+          return "some(" + a + ")";
+        },
       };
       return me;
     };
@@ -401,31 +384,29 @@ define(
     return {
       some: some,
       none: none,
-      from: from
+      from: from,
     };
-  }
-);
+  });
 
-defineGlobal("global!String", String);
-define(
-  'ephox.katamari.api.Arr',
-
-  [
-    'ephox.katamari.api.Option',
-    'global!Array',
-    'global!Error',
-    'global!String'
-  ],
-
-  function (Option, Array, Error, String) {
+  defineGlobal("global!String", String);
+  define("ephox.katamari.api.Arr", [
+    "ephox.katamari.api.Option",
+    "global!Array",
+    "global!Error",
+    "global!String",
+  ], function (Option, Array, Error, String) {
     // Use the native Array.indexOf if it is available (IE9+) otherwise fall back to manual iteration
     // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
     var rawIndexOf = (function () {
       var pIndexOf = Array.prototype.indexOf;
 
-      var fastIndex = function (xs, x) { return  pIndexOf.call(xs, x); };
+      var fastIndex = function (xs, x) {
+        return pIndexOf.call(xs, x);
+      };
 
-      var slowIndex = function(xs, x) { return slowIndexOf(xs, x); };
+      var slowIndex = function (xs, x) {
+        return slowIndexOf(xs, x);
+      };
 
       return pIndexOf === undefined ? slowIndex : fastIndex;
     })();
@@ -470,7 +451,7 @@ define(
       return r;
     };
 
-    var map = function(xs, f) {
+    var map = function (xs, f) {
       // pre-allocating array size when it's guaranteed to be known
       // http://jsperf.com/push-allocated-vs-dynamic/22
       var len = xs.length;
@@ -484,7 +465,7 @@ define(
 
     // Unwound implementing other functions in terms of each.
     // The code size is roughly the same, and it should allow for better optimisation.
-    var each = function(xs, f) {
+    var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         f(x, i, xs);
@@ -498,7 +479,7 @@ define(
       }
     };
 
-    var partition = function(xs, pred) {
+    var partition = function (xs, pred) {
       var pass = [];
       var fail = [];
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -509,7 +490,7 @@ define(
       return { pass: pass, fail: fail };
     };
 
-    var filter = function(xs, pred) {
+    var filter = function (xs, pred) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -610,7 +591,10 @@ define(
       var r = [];
       for (var i = 0, len = xs.length; i < len; ++i) {
         // Ensure that each value is an array itself
-        if (! Array.prototype.isPrototypeOf(xs[i])) throw new Error('Arr.flatten item ' + i + ' was not an array, input: ' + xs);
+        if (!Array.prototype.isPrototypeOf(xs[i]))
+          throw new Error(
+            "Arr.flatten item " + i + " was not an array, input: " + xs,
+          );
         push.apply(r, xs[i]);
       }
       return r;
@@ -632,9 +616,12 @@ define(
     };
 
     var equal = function (a1, a2) {
-      return a1.length === a2.length && forall(a1, function (x, i) {
-        return x === a2[i];
-      });
+      return (
+        a1.length === a2.length &&
+        forall(a1, function (x, i) {
+          return x === a2[i];
+        })
+      );
     };
 
     var slice = Array.prototype.slice;
@@ -650,7 +637,7 @@ define(
       });
     };
 
-    var mapToObject = function(xs, f) {
+    var mapToObject = function (xs, f) {
       var r = {};
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -659,7 +646,7 @@ define(
       return r;
     };
 
-    var pure = function(x) {
+    var pure = function (x) {
       return [x];
     };
 
@@ -693,30 +680,27 @@ define(
       mapToObject: mapToObject,
       pure: pure,
       sort: sort,
-      range: range
+      range: range,
     };
-  }
-);
-define("global!console", [], function () { if (typeof console === "undefined") console = { log: function () {} }; return console; });
-defineGlobal("global!document", document);
-define(
-  'ephox.sugar.api.node.Element',
-
-  [
-    'ephox.katamari.api.Fun',
-    'global!Error',
-    'global!console',
-    'global!document'
-  ],
-
-  function (Fun, Error, console, document) {
+  });
+  define("global!console", [], function () {
+    if (typeof console === "undefined") console = { log: function () {} };
+    return console;
+  });
+  defineGlobal("global!document", document);
+  define("ephox.sugar.api.node.Element", [
+    "ephox.katamari.api.Fun",
+    "global!Error",
+    "global!console",
+    "global!document",
+  ], function (Fun, Error, console, document) {
     var fromHtml = function (html, scope) {
       var doc = scope || document;
-      var div = doc.createElement('div');
+      var div = doc.createElement("div");
       div.innerHTML = html;
       if (!div.hasChildNodes() || div.childNodes.length > 1) {
-        console.error('HTML does not have a single root node', html);
-        throw 'HTML must have a single root node';
+        console.error("HTML does not have a single root node", html);
+        throw "HTML must have a single root node";
       }
       return fromDom(div.childNodes[0]);
     };
@@ -734,9 +718,10 @@ define(
     };
 
     var fromDom = function (node) {
-      if (node === null || node === undefined) throw new Error('Node cannot be null or undefined');
+      if (node === null || node === undefined)
+        throw new Error("Node cannot be null or undefined");
       return {
-        dom: Fun.constant(node)
+        dom: Fun.constant(node),
       };
     };
 
@@ -744,50 +729,45 @@ define(
       fromHtml: fromHtml,
       fromTag: fromTag,
       fromText: fromText,
-      fromDom: fromDom
+      fromDom: fromDom,
     };
-  }
-);
+  });
 
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-define(
-  'tinymce.plugins.visualchars.core.Data',
-
-  [
-  ],
-
-  function () {
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
+  define("tinymce.plugins.visualchars.core.Data", [], function () {
     var charMap = {
-      '\u00a0': 'nbsp',
-      '\u00ad': 'shy'
+      "\u00a0": "nbsp",
+      "\u00ad": "shy",
     };
 
     var charMapToRegExp = function (charMap, global) {
-      var key, regExp = '';
+      var key,
+        regExp = "";
 
       for (key in charMap) {
         regExp += key;
       }
 
-      return new RegExp('[' + regExp + ']', global ? 'g' : '');
+      return new RegExp("[" + regExp + "]", global ? "g" : "");
     };
 
     var charMapToSelector = function (charMap) {
-      var key, selector = '';
+      var key,
+        selector = "";
 
       for (key in charMap) {
         if (selector) {
-          selector += ',';
+          selector += ",";
         }
-        selector += 'span.mce-' + charMap[key];
+        selector += "span.mce-" + charMap[key];
       }
 
       return selector;
@@ -799,42 +779,28 @@ define(
       regExpGlobal: charMapToRegExp(charMap, true),
       selector: charMapToSelector(charMap),
       charMapToRegExp: charMapToRegExp,
-      charMapToSelector: charMapToSelector
+      charMapToSelector: charMapToSelector,
     };
-  }
-);
-define(
-  'ephox.sugar.api.node.NodeTypes',
-
-  [
-
-  ],
-
-  function () {
+  });
+  define("ephox.sugar.api.node.NodeTypes", [], function () {
     return {
-      ATTRIBUTE:              2,
-      CDATA_SECTION:          4,
-      COMMENT:                8,
-      DOCUMENT:               9,
-      DOCUMENT_TYPE:          10,
-      DOCUMENT_FRAGMENT:      11,
-      ELEMENT:                1,
-      TEXT:                   3,
+      ATTRIBUTE: 2,
+      CDATA_SECTION: 4,
+      COMMENT: 8,
+      DOCUMENT: 9,
+      DOCUMENT_TYPE: 10,
+      DOCUMENT_FRAGMENT: 11,
+      ELEMENT: 1,
+      TEXT: 3,
       PROCESSING_INSTRUCTION: 7,
-      ENTITY_REFERENCE:       5,
-      ENTITY:                 6,
-      NOTATION:               12
+      ENTITY_REFERENCE: 5,
+      ENTITY: 6,
+      NOTATION: 12,
     };
-  }
-);
-define(
-  'ephox.sugar.api.node.Node',
-
-  [
-    'ephox.sugar.api.node.NodeTypes'
-  ],
-
-  function (NodeTypes) {
+  });
+  define("ephox.sugar.api.node.Node", [
+    "ephox.sugar.api.node.NodeTypes",
+  ], function (NodeTypes) {
     var name = function (element) {
       var r = element.dom().nodeName;
       return r.toLowerCase();
@@ -855,7 +821,9 @@ define(
     };
 
     var isComment = function (element) {
-      return type(element) === NodeTypes.COMMENT || name(element) === '#comment';
+      return (
+        type(element) === NodeTypes.COMMENT || name(element) === "#comment"
+      );
     };
 
     var isElement = isType(NodeTypes.ELEMENT);
@@ -869,53 +837,51 @@ define(
       isElement: isElement,
       isText: isText,
       isDocument: isDocument,
-      isComment: isComment
+      isComment: isComment,
     };
-  }
-);
+  });
 
-define(
-  'tinymce.plugins.visualchars.core.Html',
-  [
-    'tinymce.plugins.visualchars.core.Data'
-  ],
-    function (Data) {
-      var wrapCharWithSpan = function (value) {
-        return '<span data-mce-bogus="1" class="mce-' + Data.charMap[value] + '">' + value + '</span>';
-      };
+  define("tinymce.plugins.visualchars.core.Html", [
+    "tinymce.plugins.visualchars.core.Data",
+  ], function (Data) {
+    var wrapCharWithSpan = function (value) {
+      return (
+        '<span data-mce-bogus="1" class="mce-' +
+        Data.charMap[value] +
+        '">' +
+        value +
+        "</span>"
+      );
+    };
 
-      return {
-        wrapCharWithSpan: wrapCharWithSpan
-      };
-    }
-);
+    return {
+      wrapCharWithSpan: wrapCharWithSpan,
+    };
+  });
 
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.visualchars.core.Nodes',
-
-  [
-    'ephox.katamari.api.Arr',
-    'ephox.sugar.api.node.Element',
-    'ephox.sugar.api.node.Node',
-    'tinymce.plugins.visualchars.core.Data',
-    'tinymce.plugins.visualchars.core.Html'
-  ],
-
-  function (Arr, Element, Node, Data, Html) {
+  define("tinymce.plugins.visualchars.core.Nodes", [
+    "ephox.katamari.api.Arr",
+    "ephox.sugar.api.node.Element",
+    "ephox.sugar.api.node.Node",
+    "tinymce.plugins.visualchars.core.Data",
+    "tinymce.plugins.visualchars.core.Html",
+  ], function (Arr, Element, Node, Data, Html) {
     var isMatch = function (n) {
-      return Node.isText(n) &&
+      return (
+        Node.isText(n) &&
         Node.value(n) !== undefined &&
-        Data.regExp.test(Node.value(n));
+        Data.regExp.test(Node.value(n))
+      );
     };
 
     // inlined sugars PredicateFilter.descendants for file size
@@ -926,7 +892,7 @@ define(
 
       Arr.each(children, function (x) {
         if (predicate(x)) {
-          result = result.concat([ x ]);
+          result = result.concat([x]);
         }
         result = result.concat(filterDescendants(x, predicate));
       });
@@ -950,40 +916,37 @@ define(
       isMatch: isMatch,
       filterDescendants: filterDescendants,
       findParentElm: findParentElm,
-      replaceWithSpans: replaceWithSpans
+      replaceWithSpans: replaceWithSpans,
     };
-  }
-);
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
+  });
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
 
-define(
-  'tinymce.plugins.visualchars.core.VisualChars',
-
-  [
-    'tinymce.plugins.visualchars.core.Data',
-    'tinymce.plugins.visualchars.core.Nodes',
-    'ephox.katamari.api.Arr',
-    'ephox.sugar.api.node.Element',
-    'ephox.sugar.api.node.Node'
-  ],
-
-  function (Data, Nodes, Arr, Element, Node) {
+  define("tinymce.plugins.visualchars.core.VisualChars", [
+    "tinymce.plugins.visualchars.core.Data",
+    "tinymce.plugins.visualchars.core.Nodes",
+    "ephox.katamari.api.Arr",
+    "ephox.sugar.api.node.Element",
+    "ephox.sugar.api.node.Node",
+  ], function (Data, Nodes, Arr, Element, Node) {
     var show = function (editor, rootElm) {
       var node, div;
-      var nodeList = Nodes.filterDescendants(Element.fromDom(rootElm), Nodes.isMatch);
+      var nodeList = Nodes.filterDescendants(
+        Element.fromDom(rootElm),
+        Nodes.isMatch,
+      );
 
       Arr.each(nodeList, function (n) {
         var withSpans = Nodes.replaceWithSpans(Node.value(n));
 
-        div = editor.dom.create('div', null, withSpans);
+        div = editor.dom.create("div", null, withSpans);
         while ((node = div.lastChild)) {
           editor.dom.insertAfter(node, n.dom());
         }
@@ -1014,40 +977,36 @@ define(
       editor.selection.moveToBookmark(bookmark);
     };
 
-
     return {
       show: show,
       hide: hide,
-      toggle: toggle
+      toggle: toggle,
     };
-  }
-);
-/**
- * Plugin.js
- *
- * Released under LGPL License.
- * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
- *
- * License: http://www.tinymce.com/license
- * Contributing: http://www.tinymce.com/contributing
- */
-define(
-  'tinymce.plugins.visualchars.Plugin',
-  [
-    'tinymce.core.PluginManager',
-    'tinymce.core.util.Delay',
-    'ephox.katamari.api.Arr',
-    'ephox.sugar.api.node.Element',
-    'tinymce.plugins.visualchars.core.VisualChars'
-  ],
-  function (PluginManager, Delay, Arr, Element, VisualChars) {
-    PluginManager.add('visualchars', function (editor) {
-      var self = this, state;
+  });
+  /**
+   * Plugin.js
+   *
+   * Released under LGPL License.
+   * Copyright (c) 1999-2017 Ephox Corp. All rights reserved
+   *
+   * License: http://www.tinymce.com/license
+   * Contributing: http://www.tinymce.com/contributing
+   */
+  define("tinymce.plugins.visualchars.Plugin", [
+    "tinymce.core.PluginManager",
+    "tinymce.core.util.Delay",
+    "ephox.katamari.api.Arr",
+    "ephox.sugar.api.node.Element",
+    "tinymce.plugins.visualchars.core.VisualChars",
+  ], function (PluginManager, Delay, Arr, Element, VisualChars) {
+    PluginManager.add("visualchars", function (editor) {
+      var self = this,
+        state;
 
       var toggleActiveState = function () {
         var self = this;
 
-        editor.on('VisualChars', function (e) {
+        editor.on("VisualChars", function (e) {
           self.active(e.state);
         });
       };
@@ -1057,19 +1016,21 @@ define(
       }, 300);
 
       if (editor.settings.forced_root_block !== false) {
-        editor.on('keydown', function (e) {
+        editor.on("keydown", function (e) {
           if (self.state === true) {
             e.keyCode === 13 ? VisualChars.toggle(editor) : debouncedToggle();
           }
         });
       }
 
-      editor.addCommand('mceVisualChars', function () {
-        var body = editor.getBody(), selection = editor.selection, bookmark;
+      editor.addCommand("mceVisualChars", function () {
+        var body = editor.getBody(),
+          selection = editor.selection,
+          bookmark;
 
         state = !state;
         self.state = state;
-        editor.fire('VisualChars', { state: state });
+        editor.fire("VisualChars", { state: state });
 
         bookmark = selection.getBookmark();
 
@@ -1082,24 +1043,23 @@ define(
         selection.moveToBookmark(bookmark);
       });
 
-      editor.addButton('visualchars', {
-        title: 'Show invisible characters',
-        cmd: 'mceVisualChars',
-        onPostRender: toggleActiveState
+      editor.addButton("visualchars", {
+        title: "Show invisible characters",
+        cmd: "mceVisualChars",
+        onPostRender: toggleActiveState,
       });
 
-      editor.addMenuItem('visualchars', {
-        text: 'Show invisible characters',
-        cmd: 'mceVisualChars',
+      editor.addMenuItem("visualchars", {
+        text: "Show invisible characters",
+        cmd: "mceVisualChars",
         onPostRender: toggleActiveState,
         selectable: true,
-        context: 'view',
-        prependToContext: true
+        context: "view",
+        prependToContext: true,
       });
     });
 
     return function () {};
-  }
-);
-dem('tinymce.plugins.visualchars.Plugin')();
+  });
+  dem("tinymce.plugins.visualchars.Plugin")();
 })();
